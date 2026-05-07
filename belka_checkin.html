@@ -29,7 +29,9 @@
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body {
     font-family: 'DM Sans', sans-serif;
-    background: var(--cream);
+    background:
+      linear-gradient(rgba(247,244,239,0.88), rgba(247,244,239,0.92)),
+      url('background.jpeg') center/cover fixed no-repeat;
     color: var(--text);
     min-height: 100vh;
     font-size: 16px;
@@ -294,8 +296,20 @@
 <body>
 
 <div class="header">
-  <div class="header-dot">
-    <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+  <div class="header-dot" style="background:none;">
+    <img
+      src="logo.png"
+      alt="Belka Logo"
+      style="
+        width:46px;
+        height:46px;
+        object-fit:contain;
+        border-radius:50%;
+        background:white;
+        padding:4px;
+        box-shadow:0 2px 8px rgba(0,0,0,0.12);
+      "
+    >
   </div>
   <div>
     <h1>Belka Enrichment Centre</h1>
@@ -309,6 +323,43 @@
   <button onclick="showScreen('today', this)">Today</button>
   <button onclick="showScreen('qr', this)">QR Info</button>
 </nav>
+
+<!-- WELCOME MESSAGE -->
+<div style="
+  max-width:520px;
+  margin:18px auto 0;
+  padding:0 16px;
+">
+  <div style="
+    background:rgba(255,255,255,0.94);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:22px;
+    box-shadow:0 8px 24px rgba(30,64,53,0.08);
+    backdrop-filter:blur(8px);
+  ">
+    <h2 style="
+      font-family:'DM Serif Display', serif;
+      color:var(--forest);
+      font-size:28px;
+      margin-bottom:12px;
+      line-height:1.2;
+    ">
+      Welcome to Belka Enrichment Center
+    </h2>
+
+    <p style="
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.8;
+    ">
+      At Belka Enrichment Center, we’re committed to ensuring that no one in our community goes hungry.
+      Your donations to our food bank play a crucial role in this mission.
+      With your support, we can provide nutritious meals to individuals and families facing food insecurity.
+      Join us in making a difference today.
+    </p>
+  </div>
+</div>
 
 <!-- SCREEN 1: CHECK-IN -->
 <div class="screen active" id="screen-checkin">

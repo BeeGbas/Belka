@@ -31,7 +31,7 @@
     font-family: 'DM Sans', sans-serif;
     background:
       linear-gradient(rgba(247,244,239,0.88), rgba(247,244,239,0.92)),
-      url('background.jpeg') center/cover fixed no-repeat;
+      url('background.png') center/cover fixed no-repeat;
     color: var(--text);
     min-height: 100vh;
     font-size: 16px;
@@ -266,17 +266,6 @@
   .visit-row:last-child { border-bottom: none; }
   .visit-name { font-weight: 500; margin-bottom: 3px; }
   .visit-time { font-size: 12px; color: var(--muted); }
-  .qr-box {
-    background: var(--sage);
-    border: 2px dashed var(--sage-d);
-    border-radius: 12px;
-    padding: 28px;
-    text-align: center;
-    margin-bottom: 14px;
-  }
-  .qr-box svg { width: 80px; height: 80px; opacity: 0.35; margin: 0 auto 10px; display: block; }
-  .qr-box strong { display: block; font-size: 15px; color: var(--forest); margin-bottom: 6px; }
-  .qr-box p { font-size: 13px; color: var(--muted); line-height: 1.6; }
   .empty { text-align: center; padding: 32px 0; color: var(--muted); font-size: 14px; }
   .empty svg { width: 40px; height: 40px; opacity: 0.25; margin: 0 auto 10px; display: block; }
   .divider { height: 1px; background: var(--warm); margin: 16px 0; }
@@ -318,10 +307,9 @@
 </div>
 
 <nav class="nav">
-  <button class="active" onclick="showScreen('checkin', this)">Check-In</button>
-  <button onclick="showScreen('register', this)">Register</button>
-  <button onclick="showScreen('today', this)">Today</button>
-  <button onclick="showScreen('qr', this)">QR Info</button>
+  <button class="active" data-screen="checkin" onclick="showScreen('checkin', this)">Check-In</button>
+  <button id="nav-register" onclick="showRegisterAccess(this)">Register</button>
+  <button data-screen="today" onclick="showScreen('today', this)">Today</button>
 </nav>
 
 <!-- WELCOME MESSAGE -->
@@ -383,10 +371,26 @@
   </div>
 </div>
 
+<!-- STAFF LOGIN -->
+<div class="screen" id="screen-login">
+  <div class="card">
+    <div class="card-title">Staff Access</div>
+
+    <label>Password</label>
+    <input type="password" id="staff-password" placeholder="Enter staff password" autocomplete="off">
+
+    <button class="btn btn-primary" onclick="staffLogin()">Staff Login</button>
+    <button class="btn btn-secondary" onclick="showScreen('checkin')">Back to check-in</button>
+
+    <p class="hint">Registration is for Belka staff only.</p>
+  </div>
+</div>
+
 <!-- SCREEN 2: REGISTER -->
 <div class="screen" id="screen-register">
   <div class="card">
     <div class="card-title">New client registration</div>
+    <button class="btn btn-secondary" style="margin-top:0;margin-bottom:16px;" onclick="staffLogout()">Staff logout</button>
 
     <label>Full name *</label>
     <input type="text" id="reg-name" placeholder="e.g. Maria Santos" autocomplete="off">
@@ -452,38 +456,6 @@
   </div>
 </div>
 
-<!-- SCREEN 4: QR INFO -->
-<div class="screen" id="screen-qr">
-  <div class="qr-box">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-      <rect x="3" y="14" width="7" height="7" rx="1"/>
-      <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/>
-      <rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/>
-      <rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/>
-      <path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z" fill="currentColor" stroke="none"/>
-    </svg>
-    <strong>Self check-in QR code</strong>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Client self check-in flow</div>
-    <div class="detail-row"><span class="detail-label">Step 1</span><span class="detail-value">Scan QR at entrance</span></div>
-    <div class="detail-row"><span class="detail-label">Step 2</span><span class="detail-value">File opens on their phone</span></div>
-    <div class="detail-row"><span class="detail-label">Step 3</span><span class="detail-value">Type name, select their record</span></div>
-    <div class="detail-row"><span class="detail-label">Step 4</span><span class="detail-value">Tap Confirm — visit recorded</span></div>
-    <div class="detail-row"><span class="detail-label">Elderly / no phone</span><span class="detail-value">Staff check in on their behalf</span></div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Priority postal codes</div>
-    <div class="detail-row"><span class="detail-label">M3N</span><span class="badge badge-priority">Priority</span></div>
-    <div class="detail-row"><span class="detail-label">M3J</span><span class="badge badge-priority">Priority</span></div>
-    <div class="detail-row"><span class="detail-label">M3L</span><span class="badge badge-priority">Priority</span></div>
-    <p class="hint" style="padding-top:10px;">Priority clients are flagged automatically on check-in and staff redirect them to the dedicated service area.</p>
-  </div>
-</div>
-
 <!-- TOAST -->
 <div class="toast" id="toast">
   <div class="toast-name" id="toast-name"></div>
@@ -523,11 +495,52 @@ function formatDate(d) {
 
 // ── Navigation ──
 function showScreen(name, btn) {
+  if (name === 'register' && !staffLoggedIn) {
+    name = 'login';
+  }
+
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
-  if (btn) btn.classList.add('active');
+
+  if (btn) {
+    btn.classList.add('active');
+  } else if (name === 'register' || name === 'login') {
+    document.getElementById('nav-register').classList.add('active');
+  } else {
+    const navBtn = document.querySelector(`.nav button[data-screen="${name}"]`);
+    if (navBtn) navBtn.classList.add('active');
+  }
+
   if (name === 'today') renderToday();
+}
+
+const STAFF_PASSWORD = 'belka2026';
+let staffLoggedIn = sessionStorage.getItem('belka_staff_logged_in') === 'true';
+
+function showRegisterAccess(btn) {
+  showScreen(staffLoggedIn ? 'register' : 'login', btn);
+}
+
+function staffLogin() {
+  const password = document.getElementById('staff-password').value;
+
+  if (password === STAFF_PASSWORD) {
+    staffLoggedIn = true;
+    sessionStorage.setItem('belka_staff_logged_in', 'true');
+    document.getElementById('staff-password').value = '';
+    showToast('Staff access granted', 'You can now register clients.');
+    showScreen('register');
+  } else {
+    alert('Incorrect password.');
+  }
+}
+
+function staffLogout() {
+  staffLoggedIn = false;
+  sessionStorage.removeItem('belka_staff_logged_in');
+  showToast('Staff logged out', 'Registration is locked.');
+  showScreen('checkin');
 }
 
 // ── Check-In ──
@@ -662,6 +675,12 @@ function registerClient() {
   const idType  = document.getElementById('reg-idtype').value;
   const expiry  = document.getElementById('reg-expiry').value;
 
+  if (!staffLoggedIn) {
+    alert('Staff login required to register clients.');
+    showScreen('login');
+    return;
+  }
+
   if (!name)   { alert('Please enter the client\'s full name.'); return; }
   if (!postal) { alert('Please enter the postal code.'); return; }
 
@@ -725,6 +744,12 @@ function showToast(name, sub) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3500);
 }
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.activeElement && document.activeElement.id === 'staff-password') {
+    staffLogin();
+  }
+});
 </script>
 </body>
 </html>

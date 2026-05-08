@@ -491,15 +491,6 @@ function onPostalInput() {
 async function registerClient() {
   const name = document.getElementById('reg-name').value.trim();
   const postal = document.getElementById('reg-postal').value.trim().toUpperCase();
-  if (!postal) {
-  alert('Please enter the postal code.');
-  return;
-}
-
-if (!isPriority(postal)) {
-  alert('This postal code is outside Belka’s priority service area. Please refer the client to the appropriate support service.');
-  return;
-}
   const hhold = parseInt(document.getElementById('reg-household').value) || 1;
   const idType = document.getElementById('reg-idtype').value;
   const expiry = document.getElementById('reg-expiry').value;
@@ -511,7 +502,15 @@ if (!isPriority(postal)) {
   }
 
   if (!name) { alert("Please enter the client's full name."); return; }
-  if (!postal) { alert('Please enter the postal code.'); return; }
+  if (!postal) {
+    alert('Please enter the postal code.');
+    return;
+  }
+
+  if (!isPriority(postal)) {
+    alert('This postal code is outside Belka’s priority service area. Please refer the client to the appropriate support service.');
+    return;
+  }
 
   try {
     await loadClients();

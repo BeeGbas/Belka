@@ -26,8 +26,8 @@
   .header-dot { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .header h1 { font-family:'DM Serif Display',serif; font-size:18px; font-weight:400; letter-spacing:.01em; color:#fff; }
   .header p { font-size:12px; color:rgba(255,255,255,.65); margin-top:1px; }
-  .nav { background:var(--forest-m); display:flex; border-bottom:1px solid rgba(255,255,255,.1); }
-  .nav button { flex:1; padding:12px 8px; background:none; border:none; color:rgba(255,255,255,.6); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; border-bottom:2px solid transparent; transition:all .2s; letter-spacing:.02em; }
+  .nav { background:var(--forest-m); display:flex; border-bottom:1px solid rgba(255,255,255,.1); overflow-x:auto; }
+  .nav button { flex:1; min-width:78px; padding:12px 8px; background:none; border:none; color:rgba(255,255,255,.6); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; border-bottom:2px solid transparent; transition:all .2s; letter-spacing:.02em; }
   .nav button.active { color:#fff; border-bottom-color:#7ecba9; background:rgba(255,255,255,.07); }
   .screen { display:none; padding:20px 16px 40px; max-width:520px; margin:0 auto; }
   .screen.active { display:block; }
@@ -35,9 +35,10 @@
   .card-title { font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--forest-m); margin-bottom:14px; }
   label { display:block; font-size:13px; font-weight:500; color:var(--muted); margin-bottom:5px; margin-top:12px; }
   label:first-of-type { margin-top:0; }
-  input, select { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:15px; color:var(--text); background:var(--cream); transition:border-color .15s; appearance:none; -webkit-appearance:none; }
-  input:focus, select:focus { outline:none; border-color:var(--forest-l); background:#fff; }
-  input::placeholder { color:#b0aba2; }
+  input, select, textarea { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:15px; color:var(--text); background:var(--cream); transition:border-color .15s; appearance:none; -webkit-appearance:none; }
+  textarea { min-height:92px; resize:vertical; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--forest-l); background:#fff; }
+  input::placeholder, textarea::placeholder { color:#b0aba2; }
   .btn { display:block; width:100%; padding:14px; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; transition:opacity .15s, transform .1s; letter-spacing:.01em; }
   .btn:active { transform:scale(.98); }
   .btn-primary { background:var(--forest); color:#fff; margin-top:18px; }
@@ -81,7 +82,6 @@
   .visit-name { font-weight:500; margin-bottom:3px; }
   .visit-time { font-size:12px; color:var(--muted); }
   .empty { text-align:center; padding:32px 0; color:var(--muted); font-size:14px; }
-  .empty svg { width:40px; height:40px; opacity:.25; margin:0 auto 10px; display:block; }
   .divider { height:1px; background:var(--warm); margin:16px 0; }
   .select-wrap { position:relative; }
   .select-wrap::after { content:''; position:absolute; right:14px; top:50%; transform:translateY(-50%); border:5px solid transparent; border-top-color:var(--muted); pointer-events:none; }
@@ -107,6 +107,7 @@
 
 <nav class="nav">
   <button class="active" data-screen="checkin" onclick="showScreen('checkin', this)">Check-In</button>
+  <button data-screen="request" onclick="showScreen('request', this)">Request</button>
   <button id="nav-register" onclick="showRegisterAccess(this)">Register</button>
   <button data-screen="today" onclick="showScreen('today', this)">Today</button>
   <button id="nav-manage" onclick="showManageAccess(this)">Manage</button>
@@ -144,13 +145,53 @@
     <div class="card-title">Confirm your details</div>
     <div id="id-alert-box" class="id-alert"></div>
     <div id="priority-alert-box" class="priority-alert">
-      <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
       <span>Priority support flagged.</span>
     </div>
     <div id="detail-rows"></div>
     <div class="divider"></div>
     <button class="btn btn-primary" onclick="checkInSelected()">Confirm check-in</button>
     <button class="btn btn-secondary" onclick="clearSelection()">Back to search</button>
+  </div>
+</div>
+
+<!-- SCREEN 2: REQUEST SERVICE -->
+<div class="screen" id="screen-request">
+  <div class="card">
+    <div class="card-title">Request service</div>
+    <p class="hint" style="margin-bottom:12px;">Use this form to request food bank support or another Belka service. A staff member will review the request.</p>
+
+    <label>Full name *</label>
+    <input type="text" id="request-name" placeholder="Type your full name…" autocomplete="off">
+
+    <label>Postal code *</label>
+    <input type="text" id="request-postal" placeholder="e.g. M3N 2A1" maxlength="7" autocomplete="off">
+
+    <label>Phone or email</label>
+    <input type="text" id="request-contact" placeholder="Phone number or email" autocomplete="off">
+
+    <label>Service requested *</label>
+    <div class="select-wrap">
+      <select id="request-service">
+        <option value="">— Select service —</option>
+        <option>Food Bank</option>
+        <option>Emergency Food Support</option>
+        <option>Senior Wellness Support</option>
+        <option>Youth Program</option>
+        <option>Summer Camp</option>
+        <option>Parent Support</option>
+        <option>Settlement / Newcomer Support</option>
+        <option>Employment / Referral Support</option>
+        <option>Housing Referral</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <label>Notes</label>
+    <textarea id="request-notes" placeholder="Briefly describe what support you need…"></textarea>
+
+    <button class="btn btn-primary" onclick="submitServiceRequest()">Submit request</button>
+    <p class="hint">If this is urgent, please speak with Belka staff directly.</p>
   </div>
 </div>
 
@@ -172,7 +213,7 @@
   </div>
 </div>
 
-<!-- SCREEN 2: REGISTER -->
+<!-- SCREEN 3: REGISTER -->
 <div class="screen" id="screen-register">
   <div class="card">
     <div class="card-title">New client registration</div>
@@ -210,7 +251,7 @@
   </div>
 </div>
 
-<!-- SCREEN 3: TODAY -->
+<!-- SCREEN 4: TODAY -->
 <div class="screen" id="screen-today">
   <div class="stats-grid">
     <div class="stat-box"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Visits today</div></div>
@@ -224,6 +265,7 @@
     <div class="export-grid">
       <button class="btn btn-secondary" onclick="exportClientsCSV()" style="margin-top:0;">Export clients</button>
       <button class="btn btn-secondary" onclick="exportVisitsCSV()" style="margin-top:0;">Export visits</button>
+      <button class="btn btn-secondary" onclick="exportRequestsCSV()" style="margin-top:0;">Export requests</button>
     </div>
     <p class="hint">Exports download CSV files that can be opened in Excel or Google Sheets.</p>
   </div>
@@ -234,7 +276,7 @@
   </div>
 </div>
 
-<!-- SCREEN 4: MANAGE CLIENTS -->
+<!-- SCREEN 5: MANAGE CLIENTS -->
 <div class="screen" id="screen-manage">
   <div class="card">
     <div class="card-title">Manage clients</div>
@@ -290,7 +332,6 @@
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"><div class="toast-name" id="toast-name"></div><div class="toast-sub" id="toast-sub"></div></div>
 
 <script type="module">
@@ -330,7 +371,6 @@ const STAFF_EMAIL = "thessygbadamosi@gmail.com";
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-
 const PRIORITY_CODES = ['M3N', 'M3J', 'M3L'];
 
 let selectedClient = null;
@@ -345,7 +385,14 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-function todayStr() { return new Date().toISOString().slice(0, 10); }
+function todayStr() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function normalizePostal(postal) { return (postal || '').trim().toUpperCase(); }
 function compactPostal(postal) { return normalizePostal(postal).replace(/\s/g, ''); }
 function normalizeName(name) { return (name || '').trim().toLowerCase().replace(/\s+/g, ' '); }
@@ -387,9 +434,21 @@ async function loadClients() {
 }
 
 async function loadTodayVisits() {
-  const q = query(collection(db, 'visits'), where('date', '==', todayStr()));
-  const snap = await getDocs(q);
-  const visits = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  const snap = await getDocs(collection(db, 'visits'));
+
+  const visits = snap.docs
+    .map(doc => ({ id: doc.id, ...doc.data() }))
+    .filter(v => {
+      const t = Number(v.createdAtMs || 0);
+      return t >= start.getTime() && t < end.getTime();
+    });
+
   visits.sort((a, b) => (a.createdAtMs || 0) - (b.createdAtMs || 0));
   return visits;
 }
@@ -561,6 +620,42 @@ async function checkInSelected() {
   } catch (err) {
     console.error(err);
     alert('Check-in could not be saved. Please ask staff for help.');
+  }
+}
+
+async function submitServiceRequest() {
+  const name = document.getElementById('request-name').value.trim();
+  const postal = normalizePostal(document.getElementById('request-postal').value);
+  const contact = document.getElementById('request-contact').value.trim();
+  const service = document.getElementById('request-service').value;
+  const notes = document.getElementById('request-notes').value.trim();
+
+  if (!name) { alert('Please enter your full name.'); return; }
+  if (!postal) { alert('Please enter your postal code.'); return; }
+  if (!isValidCanadianPostal(postal)) { alert('Please enter a valid Canadian postal code, e.g. M3N 2A1.'); return; }
+  if (!service) { alert('Please select the service you are requesting.'); return; }
+
+  try {
+    await addDoc(collection(db, 'serviceRequests'), {
+      name,
+      postal,
+      contact,
+      service,
+      notes,
+      status: 'new',
+      priority: isPriority(postal),
+      date: todayStr(),
+      createdAtMs: Date.now(),
+      createdAt: serverTimestamp()
+    });
+
+    ['request-name','request-postal','request-contact','request-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('request-service').value = '';
+    showToast('Request submitted', 'Belka staff will review your request.');
+    showScreen('checkin');
+  } catch (err) {
+    console.error(err);
+    alert('Could not submit your request. Please ask staff for help.');
   }
 }
 
@@ -758,6 +853,18 @@ async function exportVisitsCSV() {
   downloadCSV('belka_visits.csv', rows);
 }
 
+async function exportRequestsCSV() {
+  if (!requireStaff()) return;
+  const snap = await getDocs(collection(db, 'serviceRequests'));
+  const rows = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    .sort((a,b) => (a.createdAtMs || 0) - (b.createdAtMs || 0))
+    .map(r => ({
+      date: r.date || '', name: r.name || '', postal: r.postal || '', contact: r.contact || '',
+      service: r.service || '', notes: r.notes || '', status: r.status || 'new', priority: r.priority ? 'yes' : 'no'
+    }));
+  downloadCSV('belka_service_requests.csv', rows);
+}
+
 function downloadCSV(filename, rows) {
   if (!rows.length) { alert('No data to export.'); return; }
   const headers = Object.keys(rows[0]);
@@ -806,6 +913,7 @@ window.staffLogout = staffLogout;
 window.findClientForCheckin = findClientForCheckin;
 window.clearSelection = clearSelection;
 window.checkInSelected = checkInSelected;
+window.submitServiceRequest = submitServiceRequest;
 window.onPostalInput = onPostalInput;
 window.registerClient = registerClient;
 window.searchManageClients = searchManageClients;
@@ -815,6 +923,7 @@ window.saveClientChanges = saveClientChanges;
 window.markClientInactive = markClientInactive;
 window.exportClientsCSV = exportClientsCSV;
 window.exportVisitsCSV = exportVisitsCSV;
+window.exportRequestsCSV = exportRequestsCSV;
 </script>
 </body>
 </html>

@@ -274,6 +274,10 @@ function isPriority(postal) {
   if (!postal) return false;
   return PRIORITY_CODES.includes(postal.trim().toUpperCase().replace(/\s/g,'').slice(0,3));
 }
+if (!isPriority(postal)) {
+  alert('This postal code is outside Belka’s priority service area. Please refer the client to the appropriate support service.');
+  return;
+}
 
 function idStatus(expiry) {
   if (!expiry) return 'valid';

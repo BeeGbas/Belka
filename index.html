@@ -7,298 +7,94 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
   :root {
-    --forest:   #1e4035;
-    --forest-m: #2b5c4a;
-    --forest-l: #3a7a61;
-    --sage:     #e8f0eb;
-    --sage-d:   #ccddd3;
-    --cream:    #f7f4ef;
-    --warm:     #ede8e0;
-    --text:     #1a1a18;
-    --muted:    #6b6b62;
-    --border:   #d4cfc5;
-    --amber:    #c47a1b;
-    --amber-l:  #fdf3e3;
-    --red:      #b83232;
-    --red-l:    #fdeaea;
-    --green:    #1e6b45;
-    --green-l:  #e6f4ec;
-    --radius:   14px;
-    --shadow:   0 2px 16px rgba(30,64,53,0.10);
+    --forest:#1e4035; --forest-m:#2b5c4a; --forest-l:#3a7a61;
+    --sage:#e8f0eb; --sage-d:#ccddd3; --cream:#f7f4ef; --warm:#ede8e0;
+    --text:#1a1a18; --muted:#6b6b62; --border:#d4cfc5;
+    --amber:#c47a1b; --amber-l:#fdf3e3; --red:#b83232; --red-l:#fdeaea;
+    --green:#1e6b45; --green-l:#e6f4ec; --radius:14px;
+    --shadow:0 2px 16px rgba(30,64,53,0.10);
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   body {
-    font-family: 'DM Sans', sans-serif;
+    font-family:'DM Sans',sans-serif;
     background:
-      linear-gradient(rgba(247,244,239,0.88), rgba(247,244,239,0.92)),
+      linear-gradient(rgba(247,244,239,0.88),rgba(247,244,239,0.92)),
       url('background.png') center/cover fixed no-repeat;
-    color: var(--text);
-    min-height: 100vh;
-    font-size: 16px;
-    line-height: 1.5;
+    color:var(--text); min-height:100vh; font-size:16px; line-height:1.5;
   }
-  .header {
-    background: var(--forest);
-    color: #fff;
-    padding: 18px 24px 16px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .header-dot {
-    width: 36px; height: 36px;
-    background: var(--forest-l);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .header-dot svg { width: 20px; height: 20px; fill: #fff; }
-  .header h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 18px;
-    font-weight: 400;
-    letter-spacing: 0.01em;
-    color: #fff;
-  }
-  .header p { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 1px; }
-  .nav {
-    background: var(--forest-m);
-    display: flex;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-  .nav button {
-    flex: 1;
-    padding: 12px 8px;
-    background: none;
-    border: none;
-    color: rgba(255,255,255,0.6);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-    letter-spacing: 0.02em;
-  }
-  .nav button.active {
-    color: #fff;
-    border-bottom-color: #7ecba9;
-    background: rgba(255,255,255,0.07);
-  }
-  .screen { display: none; padding: 20px 16px 40px; max-width: 520px; margin: 0 auto; }
-  .screen.active { display: block; }
-  .card {
-    background: #fff;
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 14px;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-  }
-  .card-title {
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--forest-m);
-    margin-bottom: 14px;
-  }
-  label {
-    display: block;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--muted);
-    margin-bottom: 5px;
-    margin-top: 12px;
-  }
-  label:first-of-type { margin-top: 0; }
-  input, select {
-    width: 100%;
-    padding: 11px 14px;
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    color: var(--text);
-    background: var(--cream);
-    transition: border-color 0.15s;
-    appearance: none;
-    -webkit-appearance: none;
-  }
-  input:focus, select:focus {
-    outline: none;
-    border-color: var(--forest-l);
-    background: #fff;
-  }
-  input::placeholder { color: #b0aba2; }
-  .btn {
-    display: block;
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 10px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.15s, transform 0.1s;
-    letter-spacing: 0.01em;
-  }
-  .btn:active { transform: scale(0.98); }
-  .btn-primary { background: var(--forest); color: #fff; margin-top: 18px; }
-  .btn-primary:hover { opacity: 0.9; }
-  .btn-secondary { background: var(--sage); color: var(--forest); margin-top: 10px; border: 1.5px solid var(--sage-d); }
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-  }
-  .badge-priority { background: var(--forest); color: #fff; }
-  .badge-regular  { background: var(--sage); color: var(--forest-m); }
-  .badge-valid    { background: var(--green-l); color: var(--green); }
-  .badge-expiring { background: var(--amber-l); color: var(--amber); }
-  .badge-expired  { background: var(--red-l); color: var(--red); }
-  .result-item {
-    padding: 14px;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-    background: var(--cream);
-  }
-  .result-item:hover { border-color: var(--forest-l); background: #fff; }
-  .result-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
-  .result-meta { font-size: 12px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--forest);
-    color: #fff;
-    padding: 14px 22px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 500;
-    box-shadow: 0 8px 24px rgba(30,64,53,0.3);
-    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
-    z-index: 999;
-    text-align: center;
-    max-width: 320px;
-    width: calc(100% - 40px);
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-  .toast .toast-name { font-size: 17px; font-weight: 700; margin-bottom: 3px; }
-  .toast .toast-sub  { font-size: 13px; opacity: 0.8; }
-  .priority-alert {
-    background: var(--forest);
-    color: #fff;
-    border-radius: 10px;
-    padding: 14px 16px;
-    margin-bottom: 14px;
-    font-size: 14px;
-    font-weight: 500;
-    display: none;
-    align-items: center;
-    gap: 10px;
-  }
-  .priority-alert.show { display: flex; }
-  .priority-alert svg { width: 20px; height: 20px; flex-shrink: 0; fill: none; stroke: #7ecba9; stroke-width: 2; }
-  .id-alert {
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-bottom: 14px;
-    font-size: 13px;
-    font-weight: 500;
-    display: none;
-  }
-  .id-alert.show { display: block; }
-  .id-alert.expired  { background: var(--red-l);   color: var(--red);   border: 1px solid #f5c0c0; }
-  .id-alert.expiring { background: var(--amber-l); color: var(--amber); border: 1px solid #f5d9a8; }
-  .client-detail { display: none; }
-  .client-detail.show { display: block; }
-  .detail-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 9px 0;
-    border-bottom: 1px solid var(--warm);
-    font-size: 14px;
-    gap: 12px;
-  }
-  .detail-row:last-child { border-bottom: none; }
-  .detail-label { color: var(--muted); font-size: 13px; flex-shrink: 0; }
-  .detail-value { font-weight: 500; text-align: right; }
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-  .stat-box {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px;
-    text-align: center;
-    box-shadow: var(--shadow);
-  }
-  .stat-num   { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--forest); }
-  .stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .visit-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--warm);
-    font-size: 14px;
-    gap: 10px;
-  }
-  .visit-row:last-child { border-bottom: none; }
-  .visit-name { font-weight: 500; margin-bottom: 3px; }
-  .visit-time { font-size: 12px; color: var(--muted); }
-  .empty { text-align: center; padding: 32px 0; color: var(--muted); font-size: 14px; }
-  .empty svg { width: 40px; height: 40px; opacity: 0.25; margin: 0 auto 10px; display: block; }
-  .divider { height: 1px; background: var(--warm); margin: 16px 0; }
-  .select-wrap { position: relative; }
-  .select-wrap::after {
-    content: '';
-    position: absolute;
-    right: 14px; top: 50%;
-    transform: translateY(-50%);
-    border: 5px solid transparent;
-    border-top-color: var(--muted);
-    pointer-events: none;
-  }
-  .hint { font-size: 12px; color: var(--muted); margin-top: 5px; }
+  .header { background:var(--forest); color:#fff; padding:18px 24px 16px; display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:100; }
+  .header-dot { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .header h1 { font-family:'DM Serif Display',serif; font-size:18px; font-weight:400; letter-spacing:.01em; color:#fff; }
+  .header p { font-size:12px; color:rgba(255,255,255,.65); margin-top:1px; }
+  .nav { background:var(--forest-m); display:flex; border-bottom:1px solid rgba(255,255,255,.1); }
+  .nav button { flex:1; padding:12px 8px; background:none; border:none; color:rgba(255,255,255,.6); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; border-bottom:2px solid transparent; transition:all .2s; letter-spacing:.02em; }
+  .nav button.active { color:#fff; border-bottom-color:#7ecba9; background:rgba(255,255,255,.07); }
+  .screen { display:none; padding:20px 16px 40px; max-width:520px; margin:0 auto; }
+  .screen.active { display:block; }
+  .card { background:#fff; border-radius:var(--radius); padding:20px; margin-bottom:14px; box-shadow:var(--shadow); border:1px solid var(--border); }
+  .card-title { font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--forest-m); margin-bottom:14px; }
+  label { display:block; font-size:13px; font-weight:500; color:var(--muted); margin-bottom:5px; margin-top:12px; }
+  label:first-of-type { margin-top:0; }
+  input, select { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:15px; color:var(--text); background:var(--cream); transition:border-color .15s; appearance:none; -webkit-appearance:none; }
+  input:focus, select:focus { outline:none; border-color:var(--forest-l); background:#fff; }
+  input::placeholder { color:#b0aba2; }
+  .btn { display:block; width:100%; padding:14px; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; transition:opacity .15s, transform .1s; letter-spacing:.01em; }
+  .btn:active { transform:scale(.98); }
+  .btn-primary { background:var(--forest); color:#fff; margin-top:18px; }
+  .btn-primary:hover { opacity:.9; }
+  .btn-secondary { background:var(--sage); color:var(--forest); margin-top:10px; border:1.5px solid var(--sage-d); }
+  .badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:600; letter-spacing:.03em; }
+  .badge-priority { background:var(--forest); color:#fff; }
+  .badge-regular { background:var(--sage); color:var(--forest-m); }
+  .badge-valid { background:var(--green-l); color:var(--green); }
+  .badge-expiring { background:var(--amber-l); color:var(--amber); }
+  .badge-expired { background:var(--red-l); color:var(--red); }
+  .result-item { padding:14px; border:1.5px solid var(--border); border-radius:10px; margin-bottom:8px; cursor:pointer; transition:border-color .15s, background .15s; background:var(--cream); }
+  .result-item:hover { border-color:var(--forest-l); background:#fff; }
+  .result-name { font-weight:600; font-size:15px; margin-bottom:4px; }
+  .result-meta { font-size:12px; color:var(--muted); display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--forest); color:#fff; padding:14px 22px; border-radius:12px; font-size:14px; font-weight:500; box-shadow:0 8px 24px rgba(30,64,53,.3); transition:transform .3s cubic-bezier(.34,1.56,.64,1); z-index:999; text-align:center; max-width:320px; width:calc(100% - 40px); }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+  .toast .toast-name { font-size:17px; font-weight:700; margin-bottom:3px; }
+  .toast .toast-sub { font-size:13px; opacity:.8; }
+  .priority-alert { background:var(--forest); color:#fff; border-radius:10px; padding:14px 16px; margin-bottom:14px; font-size:14px; font-weight:500; display:none; align-items:center; gap:10px; }
+  .priority-alert.show { display:flex; }
+  .priority-alert svg { width:20px; height:20px; flex-shrink:0; fill:none; stroke:#7ecba9; stroke-width:2; }
+  .id-alert { border-radius:10px; padding:12px 14px; margin-bottom:14px; font-size:13px; font-weight:500; display:none; }
+  .id-alert.show { display:block; }
+  .id-alert.expired { background:var(--red-l); color:var(--red); border:1px solid #f5c0c0; }
+  .id-alert.expiring { background:var(--amber-l); color:var(--amber); border:1px solid #f5d9a8; }
+  .client-detail { display:none; }
+  .client-detail.show { display:block; }
+  .detail-row { display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--warm); font-size:14px; gap:12px; }
+  .detail-row:last-child { border-bottom:none; }
+  .detail-label { color:var(--muted); font-size:13px; flex-shrink:0; }
+  .detail-value { font-weight:500; text-align:right; }
+  .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+  .stat-box { background:#fff; border:1px solid var(--border); border-radius:10px; padding:14px; text-align:center; box-shadow:var(--shadow); }
+  .stat-num { font-family:'DM Serif Display',serif; font-size:28px; color:var(--forest); }
+  .stat-label { font-size:12px; color:var(--muted); margin-top:2px; }
+  .visit-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--warm); font-size:14px; gap:10px; }
+  .visit-row:last-child { border-bottom:none; }
+  .visit-name { font-weight:500; margin-bottom:3px; }
+  .visit-time { font-size:12px; color:var(--muted); }
+  .empty { text-align:center; padding:32px 0; color:var(--muted); font-size:14px; }
+  .empty svg { width:40px; height:40px; opacity:.25; margin:0 auto 10px; display:block; }
+  .divider { height:1px; background:var(--warm); margin:16px 0; }
+  .select-wrap { position:relative; }
+  .select-wrap::after { content:''; position:absolute; right:14px; top:50%; transform:translateY(-50%); border:5px solid transparent; border-top-color:var(--muted); pointer-events:none; }
+  .hint { font-size:12px; color:var(--muted); margin-top:5px; }
+  .welcome { max-width:520px; margin:18px auto 0; padding:0 16px; }
+  .welcome-card { background:rgba(255,255,255,.94); border:1px solid var(--border); border-radius:18px; padding:22px; box-shadow:0 8px 24px rgba(30,64,53,.08); backdrop-filter:blur(8px); }
+  .welcome-card h2 { font-family:'DM Serif Display',serif; color:var(--forest); font-size:28px; margin-bottom:12px; line-height:1.2; }
+  .welcome-card p { color:var(--muted); font-size:15px; line-height:1.8; }
 </style>
 </head>
 <body>
 
 <div class="header">
   <div class="header-dot" style="background:none;">
-    <img
-      src="logo.png"
-      alt="Belka Logo"
-      style="
-        width:46px;
-        height:46px;
-        object-fit:contain;
-        border-radius:50%;
-        background:white;
-        padding:4px;
-        box-shadow:0 2px 8px rgba(0,0,0,0.12);
-      "
-    >
+    <img src="belka.png" alt="Belka Logo" style="width:46px;height:46px;object-fit:contain;border-radius:50%;background:white;padding:4px;box-shadow:0 2px 8px rgba(0,0,0,.12);">
   </div>
   <div>
     <h1>Belka Enrichment Centre</h1>
@@ -312,35 +108,10 @@
   <button data-screen="today" onclick="showScreen('today', this)">Today</button>
 </nav>
 
-<!-- WELCOME MESSAGE -->
-<div style="
-  max-width:520px;
-  margin:18px auto 0;
-  padding:0 16px;
-">
-  <div style="
-    background:rgba(255,255,255,0.94);
-    border:1px solid var(--border);
-    border-radius:18px;
-    padding:22px;
-    box-shadow:0 8px 24px rgba(30,64,53,0.08);
-    backdrop-filter:blur(8px);
-  ">
-    <h2 style="
-      font-family:'DM Serif Display', serif;
-      color:var(--forest);
-      font-size:28px;
-      margin-bottom:12px;
-      line-height:1.2;
-    ">
-      Welcome to Belka Enrichment Center
-    </h2>
-
-    <p style="
-      color:var(--muted);
-      font-size:15px;
-      line-height:1.8;
-    ">
+<div class="welcome">
+  <div class="welcome-card">
+    <h2>Welcome to Belka Enrichment Center</h2>
+    <p>
       At Belka Enrichment Center, we’re committed to ensuring that no one in our community goes hungry.
       Your donations to our food bank play a crucial role in this mission.
       With your support, we can provide nutritious meals to individuals and families facing food insecurity.
@@ -352,17 +123,18 @@
 <!-- SCREEN 1: CHECK-IN -->
 <div class="screen active" id="screen-checkin">
   <div class="card">
-    <div class="card-title">Find client</div>
-    <input type="text" id="search-input" placeholder="Type client name…" oninput="searchClients()" autocomplete="off">
+    <div class="card-title">Returning client check-in</div>
+    <input type="text" id="search-input" placeholder="Type your name…" oninput="searchClients()" autocomplete="off">
     <div id="search-results" style="margin-top:12px;"></div>
+    <p class="hint">First visit? Please see Belka staff for registration and ID verification.</p>
   </div>
 
   <div class="client-detail card" id="client-detail">
-    <div class="card-title">Client details</div>
+    <div class="card-title">Confirm your details</div>
     <div id="id-alert-box" class="id-alert"></div>
     <div id="priority-alert-box" class="priority-alert">
       <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-      <span>Priority client — please redirect to the dedicated service area.</span>
+      <span>Priority support flagged.</span>
     </div>
     <div id="detail-rows"></div>
     <div class="divider"></div>
@@ -382,7 +154,7 @@
     <button class="btn btn-primary" onclick="staffLogin()">Staff Login</button>
     <button class="btn btn-secondary" onclick="showScreen('checkin')">Back to check-in</button>
 
-    <p class="hint">Registration is for Belka staff only.</p>
+    <p class="hint">Registration is for Belka staff only because first-time clients require ID verification.</p>
   </div>
 </div>
 
@@ -459,18 +231,44 @@
 <!-- TOAST -->
 <div class="toast" id="toast">
   <div class="toast-name" id="toast-name"></div>
-  <div class="toast-sub"  id="toast-sub"></div>
+  <div class="toast-sub" id="toast-sub"></div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAVo9aFRj_y4IQF1dW5iwHvwHhwoETVBwU",
+  authDomain: "belka-7af6e.firebaseapp.com",
+  projectId: "belka-7af6e",
+  storageBucket: "belka-7af6e.firebasestorage.app",
+  messagingSenderId: "799787750127",
+  appId: "1:799787750127:web:ca911ab0fd6625c020c11a",
+  measurementId: "G-P5Z4QTWL7D"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 const PRIORITY_CODES = ['M3N', 'M3J', 'M3L'];
+const STAFF_PASSWORD = 'belka2026';
 
-function getClients() { return JSON.parse(localStorage.getItem('belka_clients') || '[]'); }
-function saveClients(c) { localStorage.setItem('belka_clients', JSON.stringify(c)); }
-function getVisits()  { return JSON.parse(localStorage.getItem('belka_visits')  || '[]'); }
-function saveVisits(v)  { localStorage.setItem('belka_visits',  JSON.stringify(v)); }
+let selectedClient = null;
+let staffLoggedIn = sessionStorage.getItem('belka_staff_logged_in') === 'true';
+let clientsCache = [];
 
-function todayStr() { return new Date().toISOString().slice(0, 10); }
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
 
 function isPriority(postal) {
   if (!postal) return false;
@@ -479,10 +277,10 @@ function isPriority(postal) {
 
 function idStatus(expiry) {
   if (!expiry) return 'valid';
-  const today  = new Date(); today.setHours(0,0,0,0);
-  const exp    = new Date(expiry + 'T00:00:00');
-  const days   = Math.floor((exp - today) / 86400000);
-  if (days < 0)  return 'expired';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const exp = new Date(expiry + 'T00:00:00');
+  const days = Math.floor((exp - today) / 86400000);
+  if (days < 0) return 'expired';
   if (days <= 30) return 'expiring';
   return 'valid';
 }
@@ -493,7 +291,21 @@ function formatDate(d) {
   return `${dd} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1]} ${y}`;
 }
 
-// ── Navigation ──
+async function loadClients() {
+  const snap = await getDocs(collection(db, 'clients'));
+  clientsCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  clientsCache.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  return clientsCache;
+}
+
+async function loadTodayVisits() {
+  const q = query(collection(db, 'visits'), where('date', '==', todayStr()));
+  const snap = await getDocs(q);
+  const visits = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  visits.sort((a, b) => (a.createdAtMs || 0) - (b.createdAtMs || 0));
+  return visits;
+}
+
 function showScreen(name, btn) {
   if (name === 'register' && !staffLoggedIn) {
     name = 'login';
@@ -514,9 +326,6 @@ function showScreen(name, btn) {
 
   if (name === 'today') renderToday();
 }
-
-const STAFF_PASSWORD = 'belka2026';
-let staffLoggedIn = sessionStorage.getItem('belka_staff_logged_in') === 'true';
 
 function showRegisterAccess(btn) {
   showScreen(staffLoggedIn ? 'register' : 'login', btn);
@@ -543,40 +352,46 @@ function staffLogout() {
   showScreen('checkin');
 }
 
-// ── Check-In ──
-let selectedClient = null;
-
-function searchClients() {
-  const q = document.getElementById('search-input').value.trim().toLowerCase();
+async function searchClients() {
+  const qText = document.getElementById('search-input').value.trim().toLowerCase();
   const el = document.getElementById('search-results');
   clearSelection();
-  if (q.length < 2) { el.innerHTML = ''; return; }
 
-  const matches = getClients().filter(c => c.name.toLowerCase().includes(q)).slice(0, 8);
-
-  if (!matches.length) {
-    el.innerHTML = '<div class="empty" style="padding:16px 0">No client found — please register them first.</div>';
+  if (qText.length < 2) {
+    el.innerHTML = '';
     return;
   }
 
-  el.innerHTML = matches.map(c => {
-    const st = idStatus(c.idExpiry);
-    const pr = isPriority(c.postal);
-    const stBadge = st === 'expired'
-      ? '<span class="badge badge-expired">ID expired</span>'
-      : st === 'expiring'
-      ? '<span class="badge badge-expiring">ID expiring soon</span>'
-      : '<span class="badge badge-valid">ID valid</span>';
-    const prBadge = pr ? '<span class="badge badge-priority">Priority</span>' : '';
-    return `<div class="result-item" onclick="selectClient('${c.id}')">
-      <div class="result-name">${c.name}</div>
-      <div class="result-meta">${c.postal || '—'} &nbsp;·&nbsp; ${c.idType || 'No ID on file'} &nbsp; ${stBadge} ${prBadge}</div>
-    </div>`;
-  }).join('');
+  el.innerHTML = '<div class="empty" style="padding:16px 0">Searching…</div>';
+
+  try {
+    await loadClients();
+
+    const matches = clientsCache
+      .filter(c => (c.name || '').toLowerCase().includes(qText))
+      .slice(0, 8);
+
+    if (!matches.length) {
+      el.innerHTML = '<div class="empty" style="padding:16px 0">No client found. First-time clients should see Belka staff for registration.</div>';
+      return;
+    }
+
+    el.innerHTML = matches.map(c => {
+      const pr = isPriority(c.postal);
+      const prBadge = pr ? '<span class="badge badge-priority">Priority</span>' : '';
+      return `<div class="result-item" onclick="selectClient('${c.id}')">
+        <div class="result-name">${escapeHtml(c.name || '')}</div>
+        <div class="result-meta">${escapeHtml(c.postal || '—')} ${prBadge}</div>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    console.error(err);
+    el.innerHTML = '<div class="empty" style="padding:16px 0">Could not load clients. Please ask staff for help.</div>';
+  }
 }
 
 function selectClient(id) {
-  selectedClient = getClients().find(c => c.id === id);
+  selectedClient = clientsCache.find(c => c.id === id);
   if (!selectedClient) return;
 
   document.getElementById('search-results').innerHTML = '';
@@ -585,22 +400,19 @@ function selectClient(id) {
   const st = idStatus(selectedClient.idExpiry);
   const pr = isPriority(selectedClient.postal);
 
-  // ID alert
   const alertBox = document.getElementById('id-alert-box');
   if (st === 'expired') {
     alertBox.className = 'id-alert show expired';
-    alertBox.textContent = `ID expired on ${formatDate(selectedClient.idExpiry)} — please ask client to present valid ID and update their record.`;
+    alertBox.textContent = `ID expired on ${formatDate(selectedClient.idExpiry)} — please ask Belka staff to update your record.`;
   } else if (st === 'expiring') {
     alertBox.className = 'id-alert show expiring';
-    alertBox.textContent = `ID expiring ${formatDate(selectedClient.idExpiry)} — please remind client to renew soon.`;
+    alertBox.textContent = `ID expiring ${formatDate(selectedClient.idExpiry)} — please remind Belka staff to update your record soon.`;
   } else {
     alertBox.className = 'id-alert';
   }
 
-  // Priority alert
   document.getElementById('priority-alert-box').classList.toggle('show', pr);
 
-  // Detail rows
   const stBadge = st === 'expired'
     ? '<span class="badge badge-expired">Expired</span>'
     : st === 'expiring'
@@ -608,12 +420,10 @@ function selectClient(id) {
     : '<span class="badge badge-valid">Valid</span>';
 
   document.getElementById('detail-rows').innerHTML = `
-    <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">${selectedClient.name}</span></div>
-    <div class="detail-row"><span class="detail-label">Postal code</span><span class="detail-value">${selectedClient.postal || '—'}${pr ? ' <span class="badge badge-priority" style="font-size:11px;padding:2px 8px;margin-left:6px">Priority</span>' : ''}</span></div>
-    <div class="detail-row"><span class="detail-label">Household</span><span class="detail-value">${selectedClient.household} ${selectedClient.household == 1 ? 'person' : 'people'}</span></div>
-    <div class="detail-row"><span class="detail-label">ID type</span><span class="detail-value">${selectedClient.idType || '—'}</span></div>
-    <div class="detail-row"><span class="detail-label">ID expiry</span><span class="detail-value">${formatDate(selectedClient.idExpiry)} &nbsp;${stBadge}</span></div>
-    <div class="detail-row"><span class="detail-label">Registered</span><span class="detail-value">${formatDate(selectedClient.dateRegistered)}</span></div>
+    <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">${escapeHtml(selectedClient.name || '')}</span></div>
+    <div class="detail-row"><span class="detail-label">Postal code</span><span class="detail-value">${escapeHtml(selectedClient.postal || '—')}${pr ? ' <span class="badge badge-priority" style="font-size:11px;padding:2px 8px;margin-left:6px">Priority</span>' : ''}</span></div>
+    <div class="detail-row"><span class="detail-label">Household</span><span class="detail-value">${selectedClient.household || 1} ${(selectedClient.household || 1) == 1 ? 'person' : 'people'}</span></div>
+    <div class="detail-row"><span class="detail-label">ID status</span><span class="detail-value">${stBadge}</span></div>
   `;
 
   document.getElementById('client-detail').classList.add('show');
@@ -622,43 +432,52 @@ function selectClient(id) {
 
 function clearSelection() {
   selectedClient = null;
-  document.getElementById('client-detail').classList.remove('show');
+  const detail = document.getElementById('client-detail');
+  if (detail) detail.classList.remove('show');
   document.getElementById('id-alert-box').className = 'id-alert';
   document.getElementById('priority-alert-box').classList.remove('show');
 }
 
-function checkInSelected() {
+async function checkInSelected() {
   if (!selectedClient) return;
+
   const pr = isPriority(selectedClient.postal);
-  const visits = getVisits();
-  visits.push({
-    clientId:   selectedClient.id,
-    clientName: selectedClient.name,
-    postal:     selectedClient.postal,
-    household:  selectedClient.household,
-    priority:   pr,
-    date: todayStr(),
-    time: new Date().toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' })
-  });
-  saveVisits(visits);
+  const now = new Date();
 
-  showToast(
-    `Welcome, ${selectedClient.name.split(' ')[0]}!`,
-    pr ? 'Check-in recorded · Priority — please redirect' : 'Check-in recorded · Good to see you today'
-  );
+  try {
+    await addDoc(collection(db, 'visits'), {
+      clientId: selectedClient.id,
+      clientName: selectedClient.name || '',
+      postal: selectedClient.postal || '',
+      household: Number(selectedClient.household) || 1,
+      priority: pr,
+      date: todayStr(),
+      time: now.toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' }),
+      createdAtMs: now.getTime(),
+      createdAt: serverTimestamp()
+    });
 
-  clearSelection();
-  document.getElementById('search-input').value = '';
-  document.getElementById('search-results').innerHTML = '';
-  selectedClient = null;
+    showToast(
+      `Welcome, ${(selectedClient.name || '').split(' ')[0]}!`,
+      pr ? 'Check-in recorded · Priority support flagged' : 'Check-in recorded · Good to see you today'
+    );
+
+    clearSelection();
+    document.getElementById('search-input').value = '';
+    document.getElementById('search-results').innerHTML = '';
+    selectedClient = null;
+  } catch (err) {
+    console.error(err);
+    alert('Check-in could not be saved. Please ask staff for help.');
+  }
 }
 
-// ── Register ──
 function onPostalInput() {
   const val = document.getElementById('reg-postal');
   val.value = val.value.toUpperCase();
   const code = val.value.replace(/\s/g,'').slice(0,3);
   const el = document.getElementById('postal-status');
+
   if (code.length === 3) {
     el.innerHTML = isPriority(code)
       ? '<span class="badge badge-priority">Priority postal code — client will be flagged</span>'
@@ -668,12 +487,12 @@ function onPostalInput() {
   }
 }
 
-function registerClient() {
-  const name    = document.getElementById('reg-name').value.trim();
-  const postal  = document.getElementById('reg-postal').value.trim().toUpperCase();
-  const hhold   = parseInt(document.getElementById('reg-household').value) || 1;
-  const idType  = document.getElementById('reg-idtype').value;
-  const expiry  = document.getElementById('reg-expiry').value;
+async function registerClient() {
+  const name = document.getElementById('reg-name').value.trim();
+  const postal = document.getElementById('reg-postal').value.trim().toUpperCase();
+  const hhold = parseInt(document.getElementById('reg-household').value) || 1;
+  const idType = document.getElementById('reg-idtype').value;
+  const expiry = document.getElementById('reg-expiry').value;
 
   if (!staffLoggedIn) {
     alert('Staff login required to register clients.');
@@ -681,68 +500,89 @@ function registerClient() {
     return;
   }
 
-  if (!name)   { alert('Please enter the client\'s full name.'); return; }
+  if (!name) { alert("Please enter the client's full name."); return; }
   if (!postal) { alert('Please enter the postal code.'); return; }
 
-  const clients = getClients();
-  const dup = clients.find(c => c.name.toLowerCase() === name.toLowerCase());
-  if (dup && !confirm(`A client named "${dup.name}" is already registered. Register anyway?`)) return;
+  try {
+    await loadClients();
+    const dup = clientsCache.find(c => (c.name || '').toLowerCase() === name.toLowerCase());
+    if (dup && !confirm(`A client named "${dup.name}" is already registered. Register anyway?`)) return;
 
-  clients.push({
-    id: 'c_' + Date.now(),
-    name, postal, household: hhold,
-    idType:  idType  || '',
-    idExpiry: expiry || '',
-    dateRegistered: todayStr(),
-    priority: isPriority(postal)
-  });
-  saveClients(clients);
+    await addDoc(collection(db, 'clients'), {
+      name,
+      postal,
+      household: hhold,
+      idType: idType || '',
+      idExpiry: expiry || '',
+      dateRegistered: todayStr(),
+      priority: isPriority(postal),
+      createdAtMs: Date.now(),
+      createdAt: serverTimestamp()
+    });
 
-  ['reg-name','reg-postal','reg-expiry'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('reg-household').value = '1';
-  document.getElementById('reg-idtype').value = '';
-  document.getElementById('postal-status').innerHTML = '';
+    await loadClients();
 
-  showToast(
-    `${name.split(' ')[0]} registered!`,
-    isPriority(postal) ? 'Priority client · Please redirect on first visit' : 'Successfully added to the system'
-  );
-}
+    ['reg-name','reg-postal','reg-expiry'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('reg-household').value = '1';
+    document.getElementById('reg-idtype').value = '';
+    document.getElementById('postal-status').innerHTML = '';
 
-// ── Today ──
-function renderToday() {
-  const today  = todayStr();
-  const visits = getVisits().filter(v => v.date === today);
-  const clients = getClients();
-
-  document.getElementById('stat-total').textContent      = visits.length;
-  document.getElementById('stat-priority').textContent   = visits.filter(v => v.priority).length;
-  document.getElementById('stat-households').textContent = visits.reduce((s,v) => s + (parseInt(v.household)||1), 0);
-  document.getElementById('stat-registered').textContent = clients.length;
-
-  const el = document.getElementById('today-list');
-  if (!visits.length) {
-    el.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>No check-ins yet today.</div>`;
-    return;
+    showToast(
+      `${name.split(' ')[0]} registered!`,
+      isPriority(postal) ? 'Priority client · Support flag added' : 'Successfully added to the system'
+    );
+  } catch (err) {
+    console.error(err);
+    alert('Client could not be registered. Please check Firebase and try again.');
   }
-  el.innerHTML = [...visits].reverse().map(v => `
-    <div class="visit-row">
-      <div>
-        <div class="visit-name">${v.clientName} ${v.priority ? '<span class="badge badge-priority" style="font-size:11px;padding:2px 7px;">Priority</span>' : ''}</div>
-        <div class="visit-time">${v.postal || ''} &nbsp;·&nbsp; ${v.household || 1} ${v.household==1?'person':'people'}</div>
-      </div>
-      <div class="visit-time" style="flex-shrink:0">${v.time}</div>
-    </div>
-  `).join('');
 }
 
-// ── Toast ──
+async function renderToday() {
+  try {
+    const visits = await loadTodayVisits();
+    await loadClients();
+
+    document.getElementById('stat-total').textContent = visits.length;
+    document.getElementById('stat-priority').textContent = visits.filter(v => v.priority).length;
+    document.getElementById('stat-households').textContent = visits.reduce((s,v) => s + (parseInt(v.household)||1), 0);
+    document.getElementById('stat-registered').textContent = clientsCache.length;
+
+    const el = document.getElementById('today-list');
+    if (!visits.length) {
+      el.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>No check-ins yet today.</div>`;
+      return;
+    }
+
+    el.innerHTML = [...visits].reverse().map(v => `
+      <div class="visit-row">
+        <div>
+          <div class="visit-name">${escapeHtml(v.clientName || '')} ${v.priority ? '<span class="badge badge-priority" style="font-size:11px;padding:2px 7px;">Priority</span>' : ''}</div>
+          <div class="visit-time">${escapeHtml(v.postal || '')} &nbsp;·&nbsp; ${v.household || 1} ${(v.household || 1)==1?'person':'people'}</div>
+        </div>
+        <div class="visit-time" style="flex-shrink:0">${escapeHtml(v.time || '')}</div>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error(err);
+    document.getElementById('today-list').innerHTML = '<div class="empty">Could not load today’s check-ins.</div>';
+  }
+}
+
 function showToast(name, sub) {
   document.getElementById('toast-name').textContent = name;
-  document.getElementById('toast-sub').textContent  = sub;
+  document.getElementById('toast-sub').textContent = sub;
   const t = document.getElementById('toast');
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 }
 
 document.addEventListener('keydown', function(e) {
@@ -750,6 +590,19 @@ document.addEventListener('keydown', function(e) {
     staffLogin();
   }
 });
+
+window.showScreen = showScreen;
+window.showRegisterAccess = showRegisterAccess;
+window.staffLogin = staffLogin;
+window.staffLogout = staffLogout;
+window.searchClients = searchClients;
+window.selectClient = selectClient;
+window.clearSelection = clearSelection;
+window.checkInSelected = checkInSelected;
+window.onPostalInput = onPostalInput;
+window.registerClient = registerClient;
+
+loadClients().catch(console.error);
 </script>
 </body>
 </html>

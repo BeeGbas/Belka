@@ -274,10 +274,7 @@ function isPriority(postal) {
   if (!postal) return false;
   return PRIORITY_CODES.includes(postal.trim().toUpperCase().replace(/\s/g,'').slice(0,3));
 }
-if (!isPriority(postal)) {
-  alert('This postal code is outside Belka’s priority service area. Please refer the client to the appropriate support service.');
-  return;
-}
+
 
 function idStatus(expiry) {
   if (!expiry) return 'valid';
@@ -494,6 +491,15 @@ function onPostalInput() {
 async function registerClient() {
   const name = document.getElementById('reg-name').value.trim();
   const postal = document.getElementById('reg-postal').value.trim().toUpperCase();
+  if (!postal) {
+  alert('Please enter the postal code.');
+  return;
+}
+
+if (!isPriority(postal)) {
+  alert('This postal code is outside Belka’s priority service area. Please refer the client to the appropriate support service.');
+  return;
+}
   const hhold = parseInt(document.getElementById('reg-household').value) || 1;
   const idType = document.getElementById('reg-idtype').value;
   const expiry = document.getElementById('reg-expiry').value;

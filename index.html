@@ -43,13 +43,15 @@
   .btn-primary { background:var(--forest); color:#fff; margin-top:18px; }
   .btn-primary:hover { opacity:.9; }
   .btn-secondary { background:var(--sage); color:var(--forest); margin-top:10px; border:1.5px solid var(--sage-d); }
+  .btn-danger { background:var(--red-l); color:var(--red); margin-top:10px; border:1.5px solid #f5c0c0; }
   .badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:600; letter-spacing:.03em; }
   .badge-priority { background:var(--forest); color:#fff; }
   .badge-regular { background:var(--sage); color:var(--forest-m); }
   .badge-valid { background:var(--green-l); color:var(--green); }
   .badge-expiring { background:var(--amber-l); color:var(--amber); }
   .badge-expired { background:var(--red-l); color:var(--red); }
-  .result-item { padding:14px; border:1.5px solid var(--border); border-radius:10px; margin-bottom:8px; cursor:pointer; transition:border-color .15s, background .15s; background:var(--cream); }
+  .result-item, .admin-result { padding:14px; border:1.5px solid var(--border); border-radius:10px; margin-bottom:8px; background:var(--cream); }
+  .result-item { cursor:pointer; transition:border-color .15s, background .15s; }
   .result-item:hover { border-color:var(--forest-l); background:#fff; }
   .result-name { font-weight:600; font-size:15px; margin-bottom:4px; }
   .result-meta { font-size:12px; color:var(--muted); display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
@@ -83,15 +85,12 @@
   .divider { height:1px; background:var(--warm); margin:16px 0; }
   .select-wrap { position:relative; }
   .select-wrap::after { content:''; position:absolute; right:14px; top:50%; transform:translateY(-50%); border:5px solid transparent; border-top-color:var(--muted); pointer-events:none; }
-  .hint { font-size:12px; color:var(--muted); margin-top:5px; }
+  .hint, .small-note { font-size:12px; color:var(--muted); margin-top:5px; line-height:1.5; }
   .welcome { max-width:520px; margin:18px auto 0; padding:0 16px; }
   .welcome-card { background:rgba(255,255,255,.94); border:1px solid var(--border); border-radius:18px; padding:22px; box-shadow:0 8px 24px rgba(30,64,53,.08); backdrop-filter:blur(8px); }
   .welcome-card h2 { font-family:'DM Serif Display',serif; color:var(--forest); font-size:28px; margin-bottom:12px; line-height:1.2; }
   .welcome-card p { color:var(--muted); font-size:15px; line-height:1.8; }
-  .admin-result { padding:14px; border:1.5px solid var(--border); border-radius:10px; margin-bottom:8px; background:var(--cream); }
-  .admin-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
-  .btn-danger { background:var(--red-l); color:var(--red); margin-top:10px; border:1.5px solid #f5c0c0; }
-  .small-note { font-size:12px; color:var(--muted); line-height:1.5; margin-top:8px; }
+  .export-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 </style>
 </head>
 <body>
@@ -129,9 +128,16 @@
 <div class="screen active" id="screen-checkin">
   <div class="card">
     <div class="card-title">Returning client check-in</div>
-    <input type="text" id="search-input" placeholder="Type your name…" oninput="searchClients()" autocomplete="off">
+
+    <label>Full name</label>
+    <input type="text" id="checkin-name" placeholder="Type your full name…" autocomplete="off">
+
+    <label>Postal code</label>
+    <input type="text" id="checkin-postal" placeholder="e.g. M3N 2A1" maxlength="7" autocomplete="off">
+
+    <button class="btn btn-primary" onclick="findClientForCheckin()">Find my record</button>
     <div id="search-results" style="margin-top:12px;"></div>
-    <p class="hint">First visit, moved location, or expired ID? Please see Belka staff.</p>
+    <p class="hint">For privacy, please enter your full name and postal code. First visit, moved location, or expired ID? Please see Belka staff.</p>
   </div>
 
   <div class="client-detail card" id="client-detail">
@@ -153,13 +159,16 @@
   <div class="card">
     <div class="card-title">Staff Access</div>
 
+    <label>Email</label>
+    <input type="email" id="staff-email" placeholder="Staff email" autocomplete="email" value="thessygbadamosi@gmail.com">
+
     <label>Password</label>
-    <input type="password" id="staff-password" placeholder="Enter staff password" autocomplete="off">
+    <input type="password" id="staff-password" placeholder="Enter staff password" autocomplete="current-password">
 
     <button class="btn btn-primary" onclick="staffLogin()">Staff Login</button>
     <button class="btn btn-secondary" onclick="showScreen('checkin')">Back to check-in</button>
 
-    <p class="hint">Registration and client management are for Belka staff only.</p>
+    <p class="hint">Registration, dashboard, exports, and client management are for Belka staff only.</p>
   </div>
 </div>
 
@@ -204,32 +213,24 @@
 <!-- SCREEN 3: TODAY -->
 <div class="screen" id="screen-today">
   <div class="stats-grid">
-    <div class="stat-box">
-      <div class="stat-num" id="stat-total">0</div>
-      <div class="stat-label">Visits today</div>
+    <div class="stat-box"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Visits today</div></div>
+    <div class="stat-box"><div class="stat-num" id="stat-priority">0</div><div class="stat-label">Priority clients</div></div>
+    <div class="stat-box"><div class="stat-num" id="stat-households">0</div><div class="stat-label">Household members</div></div>
+    <div class="stat-box"><div class="stat-num" id="stat-registered">0</div><div class="stat-label">Active registered</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Exports</div>
+    <div class="export-grid">
+      <button class="btn btn-secondary" onclick="exportClientsCSV()" style="margin-top:0;">Export clients</button>
+      <button class="btn btn-secondary" onclick="exportVisitsCSV()" style="margin-top:0;">Export visits</button>
     </div>
-    <div class="stat-box">
-      <div class="stat-num" id="stat-priority">0</div>
-      <div class="stat-label">Priority clients</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-num" id="stat-households">0</div>
-      <div class="stat-label">Household members</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-num" id="stat-registered">0</div>
-      <div class="stat-label">Active registered</div>
-    </div>
+    <p class="hint">Exports download CSV files that can be opened in Excel or Google Sheets.</p>
   </div>
 
   <div class="card">
     <div class="card-title">Today's check-ins</div>
-    <div id="today-list">
-      <div class="empty">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-        No check-ins yet today.
-      </div>
-    </div>
+    <div id="today-list"><div class="empty">No check-ins yet today.</div></div>
   </div>
 </div>
 
@@ -285,15 +286,12 @@
     <button class="btn btn-primary" onclick="saveClientChanges()">Save changes</button>
     <button class="btn btn-secondary" onclick="clearManageSelection()">Cancel</button>
     <button class="btn btn-danger" onclick="markClientInactive()">Mark inactive</button>
-    <p class="small-note">Use “inactive” instead of deleting, so Belka keeps a basic history and avoids accidental loss.</p>
+    <p class="small-note">Use “inactive” instead of deleting, so Belka keeps basic history and avoids accidental loss.</p>
   </div>
 </div>
 
 <!-- TOAST -->
-<div class="toast" id="toast">
-  <div class="toast-name" id="toast-name"></div>
-  <div class="toast-sub"  id="toast-sub"></div>
-</div>
+<div class="toast" id="toast"><div class="toast-name" id="toast-name"></div><div class="toast-sub" id="toast-sub"></div></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
@@ -302,12 +300,21 @@ import {
   collection,
   addDoc,
   getDocs,
+  getDoc,
+  setDoc,
   updateDoc,
+  deleteDoc,
   doc,
   query,
   where,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAVo9aFRj_y4IQF1dW5iwHvwHhwoETVBwU",
@@ -319,33 +326,32 @@ const firebaseConfig = {
   measurementId: "G-P5Z4QTWL7D"
 };
 
+const STAFF_EMAIL = "thessygbadamosi@gmail.com";
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 const PRIORITY_CODES = ['M3N', 'M3J', 'M3L'];
-const STAFF_PASSWORD = 'belka2026';
 
 let selectedClient = null;
 let manageSelectedClient = null;
-let staffLoggedIn = sessionStorage.getItem('belka_staff_logged_in') === 'true';
+let staffLoggedIn = false;
 let clientsCache = [];
 
-function todayStr() {
-  return new Date().toISOString().slice(0, 10);
-}
+onAuthStateChanged(auth, user => {
+  staffLoggedIn = !!user && (user.email || '').toLowerCase() === STAFF_EMAIL.toLowerCase();
+  if (!staffLoggedIn && ['screen-register','screen-manage','screen-today'].some(id => document.getElementById(id)?.classList.contains('active'))) {
+    showScreen('login');
+  }
+});
 
-function normalizePostal(postal) {
-  return (postal || '').trim().toUpperCase();
-}
-
-function isPriority(postal) {
-  if (!postal) return false;
-  return PRIORITY_CODES.includes(postal.trim().toUpperCase().replace(/\s/g,'').slice(0,3));
-}
-
-function isValidCanadianPostal(postal) {
-  return /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/.test(normalizePostal(postal));
-}
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function normalizePostal(postal) { return (postal || '').trim().toUpperCase(); }
+function compactPostal(postal) { return normalizePostal(postal).replace(/\s/g, ''); }
+function normalizeName(name) { return (name || '').trim().toLowerCase().replace(/\s+/g, ' '); }
+function lookupKey(name, postal) { return normalizeName(name).replace(/[^a-z0-9]/g, '_') + '__' + compactPostal(postal); }
+function isPriority(postal) { return PRIORITY_CODES.includes(compactPostal(postal).slice(0,3)); }
+function isValidCanadianPostal(postal) { return /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/.test(normalizePostal(postal)); }
 
 function idStatus(expiry) {
   if (!expiry) return 'valid';
@@ -363,7 +369,17 @@ function formatDate(d) {
   return `${dd} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1]} ${y}`;
 }
 
+function requireStaff() {
+  if (!staffLoggedIn) {
+    alert('Staff login required.');
+    showScreen('login');
+    return false;
+  }
+  return true;
+}
+
 async function loadClients() {
+  if (!staffLoggedIn) return [];
   const snap = await getDocs(collection(db, 'clients'));
   clientsCache = snap.docs.map(doc => ({ id: doc.id, status: 'active', ...doc.data() }));
   clientsCache.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
@@ -379,21 +395,16 @@ async function loadTodayVisits() {
 }
 
 function showScreen(name, btn) {
-  if ((name === 'register' || name === 'manage') && !staffLoggedIn) {
-    name = 'login';
-  }
+  if ((name === 'register' || name === 'manage' || name === 'today') && !staffLoggedIn) name = 'login';
 
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
 
-  if (btn) {
-    btn.classList.add('active');
-  } else if (name === 'register' || name === 'login') {
-    document.getElementById('nav-register').classList.add('active');
-  } else if (name === 'manage') {
-    document.getElementById('nav-manage').classList.add('active');
-  } else {
+  if (btn) btn.classList.add('active');
+  else if (name === 'register' || name === 'login') document.getElementById('nav-register').classList.add('active');
+  else if (name === 'manage') document.getElementById('nav-manage').classList.add('active');
+  else {
     const navBtn = document.querySelector(`.nav button[data-screen="${name}"]`);
     if (navBtn) navBtn.classList.add('active');
   }
@@ -402,115 +413,110 @@ function showScreen(name, btn) {
   if (name === 'manage') searchManageClients();
 }
 
-function showRegisterAccess(btn) {
-  showScreen(staffLoggedIn ? 'register' : 'login', btn);
-}
+function showRegisterAccess(btn) { showScreen(staffLoggedIn ? 'register' : 'login', btn); }
+function showManageAccess(btn) { showScreen(staffLoggedIn ? 'manage' : 'login', btn); }
 
-function showManageAccess(btn) {
-  showScreen(staffLoggedIn ? 'manage' : 'login', btn);
-}
-
-function staffLogin() {
+async function staffLogin() {
+  const email = document.getElementById('staff-email').value.trim();
   const password = document.getElementById('staff-password').value;
 
-  if (password === STAFF_PASSWORD) {
-    staffLoggedIn = true;
-    sessionStorage.setItem('belka_staff_logged_in', 'true');
+  try {
+    const credential = await signInWithEmailAndPassword(auth, email, password);
+    if ((credential.user.email || '').toLowerCase() !== STAFF_EMAIL.toLowerCase()) {
+      await signOut(auth);
+      alert('This email is not authorized for Belka staff access.');
+      return;
+    }
     document.getElementById('staff-password').value = '';
-    showToast('Staff access granted', 'You can now register and manage clients.');
+    showToast('Staff access granted', 'You can now register, manage, and export data.');
     showScreen('register');
-  } else {
-    alert('Incorrect password.');
+  } catch (err) {
+    console.error(err);
+    alert('Staff login failed. Please check the email and password.');
   }
 }
 
-function staffLogout() {
+async function staffLogout() {
+  await signOut(auth);
   staffLoggedIn = false;
-  sessionStorage.removeItem('belka_staff_logged_in');
-  showToast('Staff logged out', 'Registration and management are locked.');
+  clientsCache = [];
+  showToast('Staff logged out', 'Staff areas are locked.');
   showScreen('checkin');
 }
 
-async function searchClients() {
-  const qText = document.getElementById('search-input').value.trim().toLowerCase();
-  const el = document.getElementById('search-results');
+async function upsertLookup(clientId, data) {
+  const key = lookupKey(data.name, data.postal);
+  await setDoc(doc(db, 'clientLookup', key), {
+    clientId,
+    name: data.name,
+    postal: data.postal,
+    household: Number(data.household) || 1,
+    idExpiry: data.idExpiry || '',
+    status: data.status || 'active',
+    priority: isPriority(data.postal),
+    updatedAtMs: Date.now(),
+    updatedAt: serverTimestamp()
+  });
+}
+
+async function findClientForCheckin() {
   clearSelection();
+  const name = document.getElementById('checkin-name').value.trim();
+  const postal = normalizePostal(document.getElementById('checkin-postal').value);
+  const el = document.getElementById('search-results');
 
-  if (qText.length < 2) {
-    el.innerHTML = '';
-    return;
-  }
+  if (!name) { alert('Please enter your full name.'); return; }
+  if (!postal) { alert('Please enter your postal code.'); return; }
+  if (!isValidCanadianPostal(postal)) { alert('Please enter a valid Canadian postal code, e.g. M3N 2A1.'); return; }
 
-  el.innerHTML = '<div class="empty" style="padding:16px 0">Searching…</div>';
+  el.innerHTML = '<div class="empty" style="padding:16px 0">Checking record…</div>';
 
   try {
-    await loadClients();
+    const key = lookupKey(name, postal);
+    const snap = await getDoc(doc(db, 'clientLookup', key));
 
-    const matches = clientsCache
-      .filter(c => (c.name || '').toLowerCase().includes(qText))
-      .filter(c => (c.status || 'active') === 'active')
-      .filter(c => idStatus(c.idExpiry) !== 'expired')
-      .slice(0, 8);
-
-    if (!matches.length) {
-      el.innerHTML = '<div class="empty" style="padding:16px 0">No active client found. First-time clients, moved clients, or expired-ID clients should see Belka staff.</div>';
+    if (!snap.exists()) {
+      el.innerHTML = '<div class="empty" style="padding:16px 0">No active record found. Please see Belka staff if this is your first visit or your details have changed.</div>';
       return;
     }
 
-    el.innerHTML = matches.map(c => {
-      const pr = isPriority(c.postal);
-      const prBadge = pr ? '<span class="badge badge-priority">Priority</span>' : '';
-      return `<div class="result-item" onclick="selectClient('${c.id}')">
-        <div class="result-name">${escapeHtml(c.name || '')}</div>
-        <div class="result-meta">${escapeHtml(c.postal || '—')} ${prBadge}</div>
-      </div>`;
-    }).join('');
+    const record = { lookupId: key, ...snap.data() };
+    if ((record.status || 'active') !== 'active') {
+      el.innerHTML = '<div class="empty" style="padding:16px 0">This record is not active. Please see Belka staff.</div>';
+      return;
+    }
+
+    if (idStatus(record.idExpiry) === 'expired') {
+      el.innerHTML = '<div class="empty" style="padding:16px 0">Your ID on file has expired. Please see Belka staff before checking in.</div>';
+      return;
+    }
+
+    selectedClient = record;
+    el.innerHTML = '';
+    renderSelectedClient(record);
   } catch (err) {
     console.error(err);
-    el.innerHTML = '<div class="empty" style="padding:16px 0">Could not load clients. Please ask staff for help.</div>';
+    el.innerHTML = '<div class="empty" style="padding:16px 0">Could not check record. Please ask staff for help.</div>';
   }
 }
 
-function selectClient(id) {
-  selectedClient = clientsCache.find(c => c.id === id);
-  if (!selectedClient) return;
-
-  if ((selectedClient.status || 'active') !== 'active') {
-    alert('This client record is not active. Please see Belka staff.');
-    clearSelection();
-    return;
-  }
-
-  if (idStatus(selectedClient.idExpiry) === 'expired') {
-    alert('This ID has expired. Please see Belka staff to update the record before checking in.');
-    clearSelection();
-    return;
-  }
-
-  document.getElementById('search-results').innerHTML = '';
-  document.getElementById('search-input').value = '';
-
-  const st = idStatus(selectedClient.idExpiry);
-  const pr = isPriority(selectedClient.postal);
+function renderSelectedClient(client) {
+  const st = idStatus(client.idExpiry);
+  const pr = isPriority(client.postal);
 
   const alertBox = document.getElementById('id-alert-box');
   if (st === 'expiring') {
     alertBox.className = 'id-alert show expiring';
-    alertBox.textContent = `ID expiring ${formatDate(selectedClient.idExpiry)} — please remind Belka staff to update your record soon.`;
-  } else {
-    alertBox.className = 'id-alert';
-  }
+    alertBox.textContent = `ID expiring ${formatDate(client.idExpiry)} — please remind Belka staff to update your record soon.`;
+  } else alertBox.className = 'id-alert';
 
   document.getElementById('priority-alert-box').classList.toggle('show', pr);
-
-  const stBadge = st === 'expiring'
-    ? '<span class="badge badge-expiring">Expiring soon</span>'
-    : '<span class="badge badge-valid">Valid</span>';
+  const stBadge = st === 'expiring' ? '<span class="badge badge-expiring">Expiring soon</span>' : '<span class="badge badge-valid">Valid</span>';
 
   document.getElementById('detail-rows').innerHTML = `
-    <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">${escapeHtml(selectedClient.name || '')}</span></div>
-    <div class="detail-row"><span class="detail-label">Postal code</span><span class="detail-value">${escapeHtml(selectedClient.postal || '—')}${pr ? ' <span class="badge badge-priority" style="font-size:11px;padding:2px 8px;margin-left:6px">Priority</span>' : ''}</span></div>
-    <div class="detail-row"><span class="detail-label">Household</span><span class="detail-value">${selectedClient.household || 1} ${(selectedClient.household || 1) == 1 ? 'person' : 'people'}</span></div>
+    <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">${escapeHtml(client.name || '')}</span></div>
+    <div class="detail-row"><span class="detail-label">Postal code</span><span class="detail-value">${escapeHtml(client.postal || '—')}${pr ? ' <span class="badge badge-priority" style="font-size:11px;padding:2px 8px;margin-left:6px">Priority</span>' : ''}</span></div>
+    <div class="detail-row"><span class="detail-label">Household</span><span class="detail-value">${client.household || 1} ${(client.household || 1) == 1 ? 'person' : 'people'}</span></div>
     <div class="detail-row"><span class="detail-label">ID status</span><span class="detail-value">${stBadge}</span></div>
   `;
 
@@ -528,23 +534,15 @@ function clearSelection() {
 
 async function checkInSelected() {
   if (!selectedClient) return;
+  if ((selectedClient.status || 'active') !== 'active') { alert('This record is not active. Please see Belka staff.'); return; }
+  if (idStatus(selectedClient.idExpiry) === 'expired') { alert('Your ID has expired. Please see Belka staff before checking in.'); return; }
 
   const pr = isPriority(selectedClient.postal);
   const now = new Date();
 
-  if ((selectedClient.status || 'active') !== 'active') {
-    alert('This client record is not active. Please see Belka staff.');
-    return;
-  }
-
-  if (idStatus(selectedClient.idExpiry) === 'expired') {
-    alert('This ID has expired. Please see Belka staff before checking in.');
-    return;
-  }
-
   try {
     await addDoc(collection(db, 'visits'), {
-      clientId: selectedClient.id,
+      clientId: selectedClient.clientId || '',
       clientName: selectedClient.name || '',
       postal: selectedClient.postal || '',
       household: Number(selectedClient.household) || 1,
@@ -555,15 +553,11 @@ async function checkInSelected() {
       createdAt: serverTimestamp()
     });
 
-    showToast(
-      `Welcome, ${(selectedClient.name || '').split(' ')[0]}!`,
-      pr ? 'Check-in recorded · Priority support flagged' : 'Check-in recorded · Good to see you today'
-    );
-
+    showToast(`Welcome, ${(selectedClient.name || '').split(' ')[0]}!`, pr ? 'Check-in recorded · Priority support flagged' : 'Check-in recorded · Good to see you today');
     clearSelection();
-    document.getElementById('search-input').value = '';
+    document.getElementById('checkin-name').value = '';
+    document.getElementById('checkin-postal').value = '';
     document.getElementById('search-results').innerHTML = '';
-    selectedClient = null;
   } catch (err) {
     console.error(err);
     alert('Check-in could not be saved. Please ask staff for help.');
@@ -573,45 +567,32 @@ async function checkInSelected() {
 function onPostalInput() {
   const val = document.getElementById('reg-postal');
   val.value = val.value.toUpperCase();
-  const code = val.value.replace(/\s/g,'').slice(0,3);
+  const code = compactPostal(val.value).slice(0,3);
   const el = document.getElementById('postal-status');
-
   if (code.length === 3) {
-    el.innerHTML = isPriority(code)
-      ? '<span class="badge badge-priority">Priority postal code — client will be flagged</span>'
-      : '<span class="badge badge-regular">Outside priority service area</span>';
-  } else {
-    el.innerHTML = '';
-  }
+    el.innerHTML = isPriority(code) ? '<span class="badge badge-priority">Priority postal code — client will be flagged</span>' : '<span class="badge badge-regular">Outside priority service area</span>';
+  } else el.innerHTML = '';
 }
 
 async function registerClient() {
+  if (!requireStaff()) return;
+
   const name = document.getElementById('reg-name').value.trim();
   const postal = normalizePostal(document.getElementById('reg-postal').value);
   const hhold = parseInt(document.getElementById('reg-household').value) || 1;
   const idType = document.getElementById('reg-idtype').value;
   const expiry = document.getElementById('reg-expiry').value;
 
-  if (!staffLoggedIn) {
-    alert('Staff login required to register clients.');
-    showScreen('login');
-    return;
-  }
-
   if (!name) { alert("Please enter the client's full name."); return; }
   if (!postal) { alert('Please enter the postal code.'); return; }
-  if (!isValidCanadianPostal(postal)) { alert('Please enter a valid 6-character Canadian postal code.'); return; }
-  if (!isPriority(postal)) {
-    alert('This postal code is outside Belka’s priority service area. Please refer the client to the appropriate support service.');
-    return;
-  }
+  if (!isValidCanadianPostal(postal)) { alert('Please enter a valid Canadian postal code, e.g. M3N 2A1.'); return; }
+  if (!isPriority(postal)) { alert('This postal code is outside Belka’s priority service area. Please refer the client to the appropriate support service.'); return; }
 
   try {
-    await loadClients();
-    const dup = clientsCache.find(c => (c.name || '').toLowerCase() === name.toLowerCase());
-    if (dup && !confirm(`A client named "${dup.name}" is already registered. Register anyway?`)) return;
+    const existing = await getDoc(doc(db, 'clientLookup', lookupKey(name, postal)));
+    if (existing.exists() && !confirm('A client with this name and postal code already exists. Register anyway?')) return;
 
-    await addDoc(collection(db, 'clients'), {
+    const clientData = {
       name,
       postal,
       household: hhold,
@@ -622,9 +603,10 @@ async function registerClient() {
       status: 'active',
       createdAtMs: Date.now(),
       createdAt: serverTimestamp()
-    });
+    };
 
-    await loadClients();
+    const ref = await addDoc(collection(db, 'clients'), clientData);
+    await upsertLookup(ref.id, clientData);
 
     ['reg-name','reg-postal','reg-expiry'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('reg-household').value = '1';
@@ -639,66 +621,39 @@ async function registerClient() {
 }
 
 async function searchManageClients() {
-  if (!staffLoggedIn) {
-    showScreen('login');
-    return;
-  }
-
+  if (!staffLoggedIn) return;
   const qText = (document.getElementById('manage-search-input')?.value || '').trim().toLowerCase();
   const el = document.getElementById('manage-results');
   if (!el) return;
-
   el.innerHTML = '<div class="empty" style="padding:16px 0">Loading clients…</div>';
 
   try {
     await loadClients();
-
-    const matches = clientsCache
-      .filter(c => !qText || (c.name || '').toLowerCase().includes(qText))
-      .slice(0, 20);
-
-    if (!matches.length) {
-      el.innerHTML = '<div class="empty" style="padding:16px 0">No clients found.</div>';
-      return;
-    }
+    const matches = clientsCache.filter(c => !qText || (c.name || '').toLowerCase().includes(qText)).slice(0, 20);
+    if (!matches.length) { el.innerHTML = '<div class="empty" style="padding:16px 0">No clients found.</div>'; return; }
 
     el.innerHTML = matches.map(c => {
       const status = c.status || 'active';
       const st = idStatus(c.idExpiry);
-      const statusBadge = status === 'active'
-        ? '<span class="badge badge-valid">Active</span>'
-        : status === 'moved'
-        ? '<span class="badge badge-expiring">Moved</span>'
-        : '<span class="badge badge-expired">Inactive</span>';
-      const idBadge = st === 'expired'
-        ? '<span class="badge badge-expired">ID expired</span>'
-        : st === 'expiring'
-        ? '<span class="badge badge-expiring">ID expiring soon</span>'
-        : '<span class="badge badge-valid">ID valid</span>';
-
-      return `<div class="admin-result">
-        <div class="result-name">${escapeHtml(c.name || '')}</div>
-        <div class="result-meta">${escapeHtml(c.postal || '—')} ${statusBadge} ${idBadge}</div>
-        <button class="btn btn-secondary" onclick="selectManageClient('${c.id}')">Edit client</button>
-      </div>`;
+      const statusBadge = status === 'active' ? '<span class="badge badge-valid">Active</span>' : status === 'moved' ? '<span class="badge badge-expiring">Moved</span>' : '<span class="badge badge-expired">Inactive</span>';
+      const idBadge = st === 'expired' ? '<span class="badge badge-expired">ID expired</span>' : st === 'expiring' ? '<span class="badge badge-expiring">ID expiring soon</span>' : '<span class="badge badge-valid">ID valid</span>';
+      return `<div class="admin-result"><div class="result-name">${escapeHtml(c.name || '')}</div><div class="result-meta">${escapeHtml(c.postal || '—')} ${statusBadge} ${idBadge}</div><button class="btn btn-secondary" onclick="selectManageClient('${c.id}')">Edit client</button></div>`;
     }).join('');
   } catch (err) {
     console.error(err);
-    el.innerHTML = '<div class="empty" style="padding:16px 0">Could not load clients.</div>';
+    el.innerHTML = '<div class="empty" style="padding:16px 0">Could not load clients. Make sure you are logged in as staff.</div>';
   }
 }
 
 function selectManageClient(id) {
   manageSelectedClient = clientsCache.find(c => c.id === id);
   if (!manageSelectedClient) return;
-
   document.getElementById('edit-name').value = manageSelectedClient.name || '';
   document.getElementById('edit-postal').value = manageSelectedClient.postal || '';
   document.getElementById('edit-household').value = manageSelectedClient.household || 1;
   document.getElementById('edit-idtype').value = manageSelectedClient.idType || '';
   document.getElementById('edit-expiry').value = manageSelectedClient.idExpiry || '';
   document.getElementById('edit-status').value = manageSelectedClient.status || 'active';
-
   document.getElementById('manage-detail').classList.add('show');
   document.getElementById('manage-detail').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
@@ -710,14 +665,10 @@ function clearManageSelection() {
 }
 
 async function saveClientChanges() {
-  if (!staffLoggedIn) {
-    alert('Staff login required.');
-    showScreen('login');
-    return;
-  }
-
+  if (!requireStaff()) return;
   if (!manageSelectedClient) return;
 
+  const oldKey = lookupKey(manageSelectedClient.name, manageSelectedClient.postal);
   const name = document.getElementById('edit-name').value.trim();
   const postal = normalizePostal(document.getElementById('edit-postal').value);
   const household = parseInt(document.getElementById('edit-household').value) || 1;
@@ -726,25 +677,16 @@ async function saveClientChanges() {
   const status = document.getElementById('edit-status').value;
 
   if (!name) { alert('Please enter a name.'); return; }
-  if (!isValidCanadianPostal(postal)) { alert('Please enter a valid 6-character Canadian postal code.'); return; }
-  if (status === 'active' && !isPriority(postal)) {
-    alert('This postal code is outside Belka’s priority service area. Set the client to moved/inactive or update the postal code.');
-    return;
-  }
+  if (!isValidCanadianPostal(postal)) { alert('Please enter a valid Canadian postal code, e.g. M3N 2A1.'); return; }
+  if (status === 'active' && !isPriority(postal)) { alert('This postal code is outside Belka’s priority service area. Set the client to moved/inactive or update the postal code.'); return; }
+
+  const data = { name, postal, household, idType: idType || '', idExpiry: idExpiry || '', status, priority: isPriority(postal) };
 
   try {
-    await updateDoc(doc(db, 'clients', manageSelectedClient.id), {
-      name,
-      postal,
-      household,
-      idType: idType || '',
-      idExpiry: idExpiry || '',
-      status,
-      priority: isPriority(postal),
-      updatedAtMs: Date.now(),
-      updatedAt: serverTimestamp()
-    });
-
+    await updateDoc(doc(db, 'clients', manageSelectedClient.id), { ...data, updatedAtMs: Date.now(), updatedAt: serverTimestamp() });
+    const newKey = lookupKey(name, postal);
+    if (oldKey !== newKey) await deleteDoc(doc(db, 'clientLookup', oldKey)).catch(() => {});
+    await upsertLookup(manageSelectedClient.id, data);
     showToast('Client updated', 'The record has been saved.');
     clearManageSelection();
     await loadClients();
@@ -756,17 +698,14 @@ async function saveClientChanges() {
 }
 
 async function markClientInactive() {
+  if (!requireStaff()) return;
   if (!manageSelectedClient) return;
-  if (!confirm(`Mark ${manageSelectedClient.name} as inactive? They will no longer appear in self check-in search.`)) return;
+  if (!confirm(`Mark ${manageSelectedClient.name} as inactive? They will no longer be able to self check in.`)) return;
 
   try {
-    await updateDoc(doc(db, 'clients', manageSelectedClient.id), {
-      status: 'inactive',
-      updatedAtMs: Date.now(),
-      updatedAt: serverTimestamp()
-    });
-
-    showToast('Client marked inactive', 'They will no longer appear for self check-in.');
+    await updateDoc(doc(db, 'clients', manageSelectedClient.id), { status: 'inactive', updatedAtMs: Date.now(), updatedAt: serverTimestamp() });
+    await upsertLookup(manageSelectedClient.id, { ...manageSelectedClient, status: 'inactive' });
+    showToast('Client marked inactive', 'They will no longer be able to self check in.');
     clearManageSelection();
     await loadClients();
     searchManageClients();
@@ -777,6 +716,7 @@ async function markClientInactive() {
 }
 
 async function renderToday() {
+  if (!requireStaff()) return;
   try {
     const visits = await loadTodayVisits();
     await loadClients();
@@ -787,24 +727,53 @@ async function renderToday() {
     document.getElementById('stat-registered').textContent = clientsCache.filter(c => (c.status || 'active') === 'active').length;
 
     const el = document.getElementById('today-list');
-    if (!visits.length) {
-      el.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>No check-ins yet today.</div>`;
-      return;
-    }
-
-    el.innerHTML = [...visits].reverse().map(v => `
-      <div class="visit-row">
-        <div>
-          <div class="visit-name">${escapeHtml(v.clientName || '')} ${v.priority ? '<span class="badge badge-priority" style="font-size:11px;padding:2px 7px;">Priority</span>' : ''}</div>
-          <div class="visit-time">${escapeHtml(v.postal || '')} &nbsp;·&nbsp; ${v.household || 1} ${(v.household || 1)==1?'person':'people'}</div>
-        </div>
-        <div class="visit-time" style="flex-shrink:0">${escapeHtml(v.time || '')}</div>
-      </div>
-    `).join('');
+    if (!visits.length) { el.innerHTML = '<div class="empty">No check-ins yet today.</div>'; return; }
+    el.innerHTML = [...visits].reverse().map(v => `<div class="visit-row"><div><div class="visit-name">${escapeHtml(v.clientName || '')} ${v.priority ? '<span class="badge badge-priority" style="font-size:11px;padding:2px 7px;">Priority</span>' : ''}</div><div class="visit-time">${escapeHtml(v.postal || '')} &nbsp;·&nbsp; ${v.household || 1} ${(v.household || 1)==1?'person':'people'}</div></div><div class="visit-time" style="flex-shrink:0">${escapeHtml(v.time || '')}</div></div>`).join('');
   } catch (err) {
     console.error(err);
     document.getElementById('today-list').innerHTML = '<div class="empty">Could not load today’s check-ins.</div>';
   }
+}
+
+async function exportClientsCSV() {
+  if (!requireStaff()) return;
+  await loadClients();
+  const rows = clientsCache.map(c => ({
+    name: c.name || '', postal: c.postal || '', household: c.household || 1,
+    idType: c.idType || '', idExpiry: c.idExpiry || '', status: c.status || 'active',
+    priority: isPriority(c.postal) ? 'yes' : 'no', dateRegistered: c.dateRegistered || ''
+  }));
+  downloadCSV('belka_clients.csv', rows);
+}
+
+async function exportVisitsCSV() {
+  if (!requireStaff()) return;
+  const snap = await getDocs(collection(db, 'visits'));
+  const rows = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    .sort((a,b) => (a.createdAtMs || 0) - (b.createdAtMs || 0))
+    .map(v => ({
+      date: v.date || '', time: v.time || '', clientName: v.clientName || '', postal: v.postal || '',
+      household: v.household || 1, priority: v.priority ? 'yes' : 'no'
+    }));
+  downloadCSV('belka_visits.csv', rows);
+}
+
+function downloadCSV(filename, rows) {
+  if (!rows.length) { alert('No data to export.'); return; }
+  const headers = Object.keys(rows[0]);
+  const csv = [headers.join(',')].concat(rows.map(row => headers.map(h => csvCell(row[h])).join(','))).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function csvCell(value) {
+  const s = String(value ?? '');
+  return /[",\n]/.test(s) ? '"' + s.replaceAll('"', '""') + '"' : s;
 }
 
 function showToast(name, sub) {
@@ -825,9 +794,8 @@ function escapeHtml(value) {
 }
 
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && document.activeElement && document.activeElement.id === 'staff-password') {
-    staffLogin();
-  }
+  if (e.key === 'Enter' && document.activeElement && document.activeElement.id === 'staff-password') staffLogin();
+  if (e.key === 'Enter' && ['checkin-name','checkin-postal'].includes(document.activeElement?.id)) findClientForCheckin();
 });
 
 window.showScreen = showScreen;
@@ -835,8 +803,7 @@ window.showRegisterAccess = showRegisterAccess;
 window.showManageAccess = showManageAccess;
 window.staffLogin = staffLogin;
 window.staffLogout = staffLogout;
-window.searchClients = searchClients;
-window.selectClient = selectClient;
+window.findClientForCheckin = findClientForCheckin;
 window.clearSelection = clearSelection;
 window.checkInSelected = checkInSelected;
 window.onPostalInput = onPostalInput;
@@ -846,8 +813,8 @@ window.selectManageClient = selectManageClient;
 window.clearManageSelection = clearManageSelection;
 window.saveClientChanges = saveClientChanges;
 window.markClientInactive = markClientInactive;
-
-loadClients().catch(console.error);
+window.exportClientsCSV = exportClientsCSV;
+window.exportVisitsCSV = exportVisitsCSV;
 </script>
 </body>
 </html>

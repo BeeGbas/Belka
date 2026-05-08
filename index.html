@@ -88,6 +88,10 @@
   .welcome-card { background:rgba(255,255,255,.94); border:1px solid var(--border); border-radius:18px; padding:22px; box-shadow:0 8px 24px rgba(30,64,53,.08); backdrop-filter:blur(8px); }
   .welcome-card h2 { font-family:'DM Serif Display',serif; color:var(--forest); font-size:28px; margin-bottom:12px; line-height:1.2; }
   .welcome-card p { color:var(--muted); font-size:15px; line-height:1.8; }
+  .admin-result { padding:14px; border:1.5px solid var(--border); border-radius:10px; margin-bottom:8px; background:var(--cream); }
+  .admin-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+  .btn-danger { background:var(--red-l); color:var(--red); margin-top:10px; border:1.5px solid #f5c0c0; }
+  .small-note { font-size:12px; color:var(--muted); line-height:1.5; margin-top:8px; }
 </style>
 </head>
 <body>
@@ -106,6 +110,7 @@
   <button class="active" data-screen="checkin" onclick="showScreen('checkin', this)">Check-In</button>
   <button id="nav-register" onclick="showRegisterAccess(this)">Register</button>
   <button data-screen="today" onclick="showScreen('today', this)">Today</button>
+  <button id="nav-manage" onclick="showManageAccess(this)">Manage</button>
 </nav>
 
 <div class="welcome">
@@ -126,7 +131,7 @@
     <div class="card-title">Returning client check-in</div>
     <input type="text" id="search-input" placeholder="Type your name…" oninput="searchClients()" autocomplete="off">
     <div id="search-results" style="margin-top:12px;"></div>
-    <p class="hint">First visit? Please see Belka staff for registration and ID verification.</p>
+    <p class="hint">First visit, moved location, or expired ID? Please see Belka staff.</p>
   </div>
 
   <div class="client-detail card" id="client-detail">
@@ -154,7 +159,7 @@
     <button class="btn btn-primary" onclick="staffLogin()">Staff Login</button>
     <button class="btn btn-secondary" onclick="showScreen('checkin')">Back to check-in</button>
 
-    <p class="hint">Registration is for Belka staff only because first-time clients require ID verification.</p>
+    <p class="hint">Registration and client management are for Belka staff only.</p>
   </div>
 </div>
 
@@ -213,7 +218,7 @@
     </div>
     <div class="stat-box">
       <div class="stat-num" id="stat-registered">0</div>
-      <div class="stat-label">Total registered</div>
+      <div class="stat-label">Active registered</div>
     </div>
   </div>
 
@@ -228,10 +233,66 @@
   </div>
 </div>
 
+<!-- SCREEN 4: MANAGE CLIENTS -->
+<div class="screen" id="screen-manage">
+  <div class="card">
+    <div class="card-title">Manage clients</div>
+    <p class="hint" style="margin-bottom:12px;">Staff can update postal codes, ID expiry, and client status. Inactive, moved, or expired-ID clients will not be able to self check in.</p>
+
+    <label>Search client</label>
+    <input type="text" id="manage-search-input" placeholder="Type client name…" oninput="searchManageClients()" autocomplete="off">
+    <div id="manage-results" style="margin-top:12px;"></div>
+  </div>
+
+  <div class="client-detail card" id="manage-detail">
+    <div class="card-title">Edit client record</div>
+
+    <label>Full name</label>
+    <input type="text" id="edit-name" autocomplete="off">
+
+    <label>Postal code</label>
+    <input type="text" id="edit-postal" maxlength="7" autocomplete="off">
+
+    <label>Household members</label>
+    <input type="number" id="edit-household" min="1" max="20">
+
+    <label>ID type</label>
+    <div class="select-wrap">
+      <select id="edit-idtype">
+        <option value="">— Select ID type —</option>
+        <option>Ontario Health Card</option>
+        <option>Driver's Licence</option>
+        <option>Passport</option>
+        <option>Ontario Photo Card</option>
+        <option>Permanent Resident Card</option>
+        <option>Other government ID</option>
+        <option>No ID presented</option>
+      </select>
+    </div>
+
+    <label>ID expiry date</label>
+    <input type="date" id="edit-expiry">
+
+    <label>Client status</label>
+    <div class="select-wrap">
+      <select id="edit-status">
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+        <option value="moved">Moved / outside service area</option>
+      </select>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveClientChanges()">Save changes</button>
+    <button class="btn btn-secondary" onclick="clearManageSelection()">Cancel</button>
+    <button class="btn btn-danger" onclick="markClientInactive()">Mark inactive</button>
+    <p class="small-note">Use “inactive” instead of deleting, so Belka keeps a basic history and avoids accidental loss.</p>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast">
   <div class="toast-name" id="toast-name"></div>
-  <div class="toast-sub" id="toast-sub"></div>
+  <div class="toast-sub"  id="toast-sub"></div>
 </div>
 
 <script type="module">
@@ -241,6 +302,8 @@ import {
   collection,
   addDoc,
   getDocs,
+  updateDoc,
+  doc,
   query,
   where,
   serverTimestamp
@@ -263,6 +326,7 @@ const PRIORITY_CODES = ['M3N', 'M3J', 'M3L'];
 const STAFF_PASSWORD = 'belka2026';
 
 let selectedClient = null;
+let manageSelectedClient = null;
 let staffLoggedIn = sessionStorage.getItem('belka_staff_logged_in') === 'true';
 let clientsCache = [];
 
@@ -270,11 +334,18 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function normalizePostal(postal) {
+  return (postal || '').trim().toUpperCase();
+}
+
 function isPriority(postal) {
   if (!postal) return false;
   return PRIORITY_CODES.includes(postal.trim().toUpperCase().replace(/\s/g,'').slice(0,3));
 }
 
+function isValidCanadianPostal(postal) {
+  return /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/.test(normalizePostal(postal));
+}
 
 function idStatus(expiry) {
   if (!expiry) return 'valid';
@@ -294,7 +365,7 @@ function formatDate(d) {
 
 async function loadClients() {
   const snap = await getDocs(collection(db, 'clients'));
-  clientsCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  clientsCache = snap.docs.map(doc => ({ id: doc.id, status: 'active', ...doc.data() }));
   clientsCache.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   return clientsCache;
 }
@@ -308,7 +379,7 @@ async function loadTodayVisits() {
 }
 
 function showScreen(name, btn) {
-  if (name === 'register' && !staffLoggedIn) {
+  if ((name === 'register' || name === 'manage') && !staffLoggedIn) {
     name = 'login';
   }
 
@@ -320,16 +391,23 @@ function showScreen(name, btn) {
     btn.classList.add('active');
   } else if (name === 'register' || name === 'login') {
     document.getElementById('nav-register').classList.add('active');
+  } else if (name === 'manage') {
+    document.getElementById('nav-manage').classList.add('active');
   } else {
     const navBtn = document.querySelector(`.nav button[data-screen="${name}"]`);
     if (navBtn) navBtn.classList.add('active');
   }
 
   if (name === 'today') renderToday();
+  if (name === 'manage') searchManageClients();
 }
 
 function showRegisterAccess(btn) {
   showScreen(staffLoggedIn ? 'register' : 'login', btn);
+}
+
+function showManageAccess(btn) {
+  showScreen(staffLoggedIn ? 'manage' : 'login', btn);
 }
 
 function staffLogin() {
@@ -339,7 +417,7 @@ function staffLogin() {
     staffLoggedIn = true;
     sessionStorage.setItem('belka_staff_logged_in', 'true');
     document.getElementById('staff-password').value = '';
-    showToast('Staff access granted', 'You can now register clients.');
+    showToast('Staff access granted', 'You can now register and manage clients.');
     showScreen('register');
   } else {
     alert('Incorrect password.');
@@ -349,7 +427,7 @@ function staffLogin() {
 function staffLogout() {
   staffLoggedIn = false;
   sessionStorage.removeItem('belka_staff_logged_in');
-  showToast('Staff logged out', 'Registration is locked.');
+  showToast('Staff logged out', 'Registration and management are locked.');
   showScreen('checkin');
 }
 
@@ -370,10 +448,12 @@ async function searchClients() {
 
     const matches = clientsCache
       .filter(c => (c.name || '').toLowerCase().includes(qText))
+      .filter(c => (c.status || 'active') === 'active')
+      .filter(c => idStatus(c.idExpiry) !== 'expired')
       .slice(0, 8);
 
     if (!matches.length) {
-      el.innerHTML = '<div class="empty" style="padding:16px 0">No client found. First-time clients should see Belka staff for registration.</div>';
+      el.innerHTML = '<div class="empty" style="padding:16px 0">No active client found. First-time clients, moved clients, or expired-ID clients should see Belka staff.</div>';
       return;
     }
 
@@ -395,6 +475,18 @@ function selectClient(id) {
   selectedClient = clientsCache.find(c => c.id === id);
   if (!selectedClient) return;
 
+  if ((selectedClient.status || 'active') !== 'active') {
+    alert('This client record is not active. Please see Belka staff.');
+    clearSelection();
+    return;
+  }
+
+  if (idStatus(selectedClient.idExpiry) === 'expired') {
+    alert('This ID has expired. Please see Belka staff to update the record before checking in.');
+    clearSelection();
+    return;
+  }
+
   document.getElementById('search-results').innerHTML = '';
   document.getElementById('search-input').value = '';
 
@@ -402,10 +494,7 @@ function selectClient(id) {
   const pr = isPriority(selectedClient.postal);
 
   const alertBox = document.getElementById('id-alert-box');
-  if (st === 'expired') {
-    alertBox.className = 'id-alert show expired';
-    alertBox.textContent = `ID expired on ${formatDate(selectedClient.idExpiry)} — please ask Belka staff to update your record.`;
-  } else if (st === 'expiring') {
+  if (st === 'expiring') {
     alertBox.className = 'id-alert show expiring';
     alertBox.textContent = `ID expiring ${formatDate(selectedClient.idExpiry)} — please remind Belka staff to update your record soon.`;
   } else {
@@ -414,9 +503,7 @@ function selectClient(id) {
 
   document.getElementById('priority-alert-box').classList.toggle('show', pr);
 
-  const stBadge = st === 'expired'
-    ? '<span class="badge badge-expired">Expired</span>'
-    : st === 'expiring'
+  const stBadge = st === 'expiring'
     ? '<span class="badge badge-expiring">Expiring soon</span>'
     : '<span class="badge badge-valid">Valid</span>';
 
@@ -444,6 +531,16 @@ async function checkInSelected() {
 
   const pr = isPriority(selectedClient.postal);
   const now = new Date();
+
+  if ((selectedClient.status || 'active') !== 'active') {
+    alert('This client record is not active. Please see Belka staff.');
+    return;
+  }
+
+  if (idStatus(selectedClient.idExpiry) === 'expired') {
+    alert('This ID has expired. Please see Belka staff before checking in.');
+    return;
+  }
 
   try {
     await addDoc(collection(db, 'visits'), {
@@ -482,7 +579,7 @@ function onPostalInput() {
   if (code.length === 3) {
     el.innerHTML = isPriority(code)
       ? '<span class="badge badge-priority">Priority postal code — client will be flagged</span>'
-      : '<span class="badge badge-regular">Regular service area</span>';
+      : '<span class="badge badge-regular">Outside priority service area</span>';
   } else {
     el.innerHTML = '';
   }
@@ -490,7 +587,7 @@ function onPostalInput() {
 
 async function registerClient() {
   const name = document.getElementById('reg-name').value.trim();
-  const postal = document.getElementById('reg-postal').value.trim().toUpperCase();
+  const postal = normalizePostal(document.getElementById('reg-postal').value);
   const hhold = parseInt(document.getElementById('reg-household').value) || 1;
   const idType = document.getElementById('reg-idtype').value;
   const expiry = document.getElementById('reg-expiry').value;
@@ -502,22 +599,13 @@ async function registerClient() {
   }
 
   if (!name) { alert("Please enter the client's full name."); return; }
-  if (!postal) {
-    alert('Please enter the postal code.');
-    return;
-  }
-
+  if (!postal) { alert('Please enter the postal code.'); return; }
+  if (!isValidCanadianPostal(postal)) { alert('Please enter a valid 6-character Canadian postal code.'); return; }
   if (!isPriority(postal)) {
     alert('This postal code is outside Belka’s priority service area. Please refer the client to the appropriate support service.');
     return;
   }
-  // Validate full Canadian postal code
-  const postalRegex = /^[A-Z]\\d[A-Z]\\s?\\d[A-Z]\\d$/;
 
-  if (!postalRegex.test(postal)) {
-    alert('Please enter a valid 6-character Canadian postal code.');
-    return;
-    }
   try {
     await loadClients();
     const dup = clientsCache.find(c => (c.name || '').toLowerCase() === name.toLowerCase());
@@ -531,6 +619,7 @@ async function registerClient() {
       idExpiry: expiry || '',
       dateRegistered: todayStr(),
       priority: isPriority(postal),
+      status: 'active',
       createdAtMs: Date.now(),
       createdAt: serverTimestamp()
     });
@@ -542,13 +631,148 @@ async function registerClient() {
     document.getElementById('reg-idtype').value = '';
     document.getElementById('postal-status').innerHTML = '';
 
-    showToast(
-      `${name.split(' ')[0]} registered!`,
-      isPriority(postal) ? 'Priority client · Support flag added' : 'Successfully added to the system'
-    );
+    showToast(`${name.split(' ')[0]} registered!`, 'Priority client · Support flag added');
   } catch (err) {
     console.error(err);
     alert('Client could not be registered. Please check Firebase and try again.');
+  }
+}
+
+async function searchManageClients() {
+  if (!staffLoggedIn) {
+    showScreen('login');
+    return;
+  }
+
+  const qText = (document.getElementById('manage-search-input')?.value || '').trim().toLowerCase();
+  const el = document.getElementById('manage-results');
+  if (!el) return;
+
+  el.innerHTML = '<div class="empty" style="padding:16px 0">Loading clients…</div>';
+
+  try {
+    await loadClients();
+
+    const matches = clientsCache
+      .filter(c => !qText || (c.name || '').toLowerCase().includes(qText))
+      .slice(0, 20);
+
+    if (!matches.length) {
+      el.innerHTML = '<div class="empty" style="padding:16px 0">No clients found.</div>';
+      return;
+    }
+
+    el.innerHTML = matches.map(c => {
+      const status = c.status || 'active';
+      const st = idStatus(c.idExpiry);
+      const statusBadge = status === 'active'
+        ? '<span class="badge badge-valid">Active</span>'
+        : status === 'moved'
+        ? '<span class="badge badge-expiring">Moved</span>'
+        : '<span class="badge badge-expired">Inactive</span>';
+      const idBadge = st === 'expired'
+        ? '<span class="badge badge-expired">ID expired</span>'
+        : st === 'expiring'
+        ? '<span class="badge badge-expiring">ID expiring soon</span>'
+        : '<span class="badge badge-valid">ID valid</span>';
+
+      return `<div class="admin-result">
+        <div class="result-name">${escapeHtml(c.name || '')}</div>
+        <div class="result-meta">${escapeHtml(c.postal || '—')} ${statusBadge} ${idBadge}</div>
+        <button class="btn btn-secondary" onclick="selectManageClient('${c.id}')">Edit client</button>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    console.error(err);
+    el.innerHTML = '<div class="empty" style="padding:16px 0">Could not load clients.</div>';
+  }
+}
+
+function selectManageClient(id) {
+  manageSelectedClient = clientsCache.find(c => c.id === id);
+  if (!manageSelectedClient) return;
+
+  document.getElementById('edit-name').value = manageSelectedClient.name || '';
+  document.getElementById('edit-postal').value = manageSelectedClient.postal || '';
+  document.getElementById('edit-household').value = manageSelectedClient.household || 1;
+  document.getElementById('edit-idtype').value = manageSelectedClient.idType || '';
+  document.getElementById('edit-expiry').value = manageSelectedClient.idExpiry || '';
+  document.getElementById('edit-status').value = manageSelectedClient.status || 'active';
+
+  document.getElementById('manage-detail').classList.add('show');
+  document.getElementById('manage-detail').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function clearManageSelection() {
+  manageSelectedClient = null;
+  const detail = document.getElementById('manage-detail');
+  if (detail) detail.classList.remove('show');
+}
+
+async function saveClientChanges() {
+  if (!staffLoggedIn) {
+    alert('Staff login required.');
+    showScreen('login');
+    return;
+  }
+
+  if (!manageSelectedClient) return;
+
+  const name = document.getElementById('edit-name').value.trim();
+  const postal = normalizePostal(document.getElementById('edit-postal').value);
+  const household = parseInt(document.getElementById('edit-household').value) || 1;
+  const idType = document.getElementById('edit-idtype').value;
+  const idExpiry = document.getElementById('edit-expiry').value;
+  const status = document.getElementById('edit-status').value;
+
+  if (!name) { alert('Please enter a name.'); return; }
+  if (!isValidCanadianPostal(postal)) { alert('Please enter a valid 6-character Canadian postal code.'); return; }
+  if (status === 'active' && !isPriority(postal)) {
+    alert('This postal code is outside Belka’s priority service area. Set the client to moved/inactive or update the postal code.');
+    return;
+  }
+
+  try {
+    await updateDoc(doc(db, 'clients', manageSelectedClient.id), {
+      name,
+      postal,
+      household,
+      idType: idType || '',
+      idExpiry: idExpiry || '',
+      status,
+      priority: isPriority(postal),
+      updatedAtMs: Date.now(),
+      updatedAt: serverTimestamp()
+    });
+
+    showToast('Client updated', 'The record has been saved.');
+    clearManageSelection();
+    await loadClients();
+    searchManageClients();
+  } catch (err) {
+    console.error(err);
+    alert('Could not update client. Please try again.');
+  }
+}
+
+async function markClientInactive() {
+  if (!manageSelectedClient) return;
+  if (!confirm(`Mark ${manageSelectedClient.name} as inactive? They will no longer appear in self check-in search.`)) return;
+
+  try {
+    await updateDoc(doc(db, 'clients', manageSelectedClient.id), {
+      status: 'inactive',
+      updatedAtMs: Date.now(),
+      updatedAt: serverTimestamp()
+    });
+
+    showToast('Client marked inactive', 'They will no longer appear for self check-in.');
+    clearManageSelection();
+    await loadClients();
+    searchManageClients();
+  } catch (err) {
+    console.error(err);
+    alert('Could not mark client inactive.');
   }
 }
 
@@ -560,7 +784,7 @@ async function renderToday() {
     document.getElementById('stat-total').textContent = visits.length;
     document.getElementById('stat-priority').textContent = visits.filter(v => v.priority).length;
     document.getElementById('stat-households').textContent = visits.reduce((s,v) => s + (parseInt(v.household)||1), 0);
-    document.getElementById('stat-registered').textContent = clientsCache.length;
+    document.getElementById('stat-registered').textContent = clientsCache.filter(c => (c.status || 'active') === 'active').length;
 
     const el = document.getElementById('today-list');
     if (!visits.length) {
@@ -608,6 +832,7 @@ document.addEventListener('keydown', function(e) {
 
 window.showScreen = showScreen;
 window.showRegisterAccess = showRegisterAccess;
+window.showManageAccess = showManageAccess;
 window.staffLogin = staffLogin;
 window.staffLogout = staffLogout;
 window.searchClients = searchClients;
@@ -616,6 +841,11 @@ window.clearSelection = clearSelection;
 window.checkInSelected = checkInSelected;
 window.onPostalInput = onPostalInput;
 window.registerClient = registerClient;
+window.searchManageClients = searchManageClients;
+window.selectManageClient = selectManageClient;
+window.clearManageSelection = clearManageSelection;
+window.saveClientChanges = saveClientChanges;
+window.markClientInactive = markClientInactive;
 
 loadClients().catch(console.error);
 </script>
